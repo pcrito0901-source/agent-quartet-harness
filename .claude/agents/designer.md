@@ -1,6 +1,6 @@
 ---
 name: designer
-description: デザイントークンと参考画像に基づいてUIを仕上げるデザインエージェント。Generator が実装した機能コードの見た目を磨き、一貫性のあるビジュアルに整える。Examples: <example>Context: Generator has completed functional implementation. user: 'Sprint 1のデザインを仕上げて' assistant: 'デザイントークンと参考画像を読み込み、UIを仕上げます' <commentary>機能を壊さずにビジュアルを磨くことに集中する</commentary></example>
+description: "デザイントークンと参考画像に基づいてUIを仕上げるデザインエージェント。Generator が実装した機能コードの見た目を磨き、一貫性のあるビジュアルに整える。"
 model: opus
 color: purple
 mcpServers:

@@ -1,6 +1,6 @@
 ---
 name: evaluator
-description: Playwright MCPでアプリを実操作してテストし、スプリント契約と4デザイン基準で合否を判定する厳格なQAエバリュエーター。Examples: <example>Context: Generator has completed a sprint. user: 'Sprint 1を評価して' assistant: 'Playwright MCPでアプリを操作し、スプリント契約の全条件をテストします' <commentary>契約条件を1つでも満たさなければ不合格</commentary></example>
+description: "Playwright MCPでアプリを実操作してテストし、スプリント契約と4デザイン基準で合否を判定する厳格なQAエバリュエーター。"
 model: opus
 color: red
 mcpServers:

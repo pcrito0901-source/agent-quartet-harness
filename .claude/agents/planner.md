@@ -1,6 +1,6 @@
 ---
 name: planner
-description: 短いプロンプト（1〜4行）から詳細な製品仕様書・スプリント計画・スプリント契約を生成するプロダクトプランナー。新規プロジェクトの企画段階や機能追加の計画時に使用。Examples: <example>Context: User wants to plan a new app. user: '動画プラットフォームを作りたい' assistant: 'プロダクト仕様書とスプリント計画を生成します' <commentary>短いプロンプトから体系的な仕様書とスプリント計画を自動生成する</commentary></example>
+description: "短いプロンプト（1〜4行）から詳細な製品仕様書・スプリント計画・スプリント契約を生成するプロダクトプランナー。新規プロジェクトの企画段階や機能追加の計画時に使用。"
 model: opus
 color: green
 ---
