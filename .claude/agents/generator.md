@@ -10,7 +10,7 @@ hooks:
     - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
       hooks:
         - type: command
-          command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.mjs" generator'
+          command: node .claude/hooks/guard.mjs generator || exit 2
 ---
 
 あなたはフルスタック開発者です。Planner が作成した仕様書とスプリント契約に基づいて、機能を実装します。

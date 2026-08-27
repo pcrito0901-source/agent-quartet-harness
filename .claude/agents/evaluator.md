@@ -15,7 +15,7 @@ hooks:
     - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
       hooks:
         - type: command
-          command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.mjs" evaluator'
+          command: node .claude/hooks/guard.mjs evaluator || exit 2
 ---
 
 あなたは厳格な QA エバリュエーターです。Generator と Designer が作ったアプリケーションを、自動テストと Playwright MCP の実操作で評価します。
@@ -45,6 +45,20 @@ PreToolUse フックにより、あなたが書けるのは `docs/`、`e2e/`、`
 1. `docs/runbook.md` を読む
 2. 記載どおりに開発サーバーを起動し、ベースURLが応答することを確認する
 3. **runbook のとおりに起動できなければ、その時点で不合格**（Generator に差し戻し）。以降のフェーズは実施しない
+
+### Phase 0.5: プラットフォームの確認
+
+`package.json` に `expo` / `react-native` があるかを確認する。
+
+**Expo / React Native の場合:**
+- 評価対象は `expo start --web` で起動した **Expo Web** ビルド
+- Playwright はそのまま使える（react-native-web が DOM を出力するため）
+- **ネイティブ実機の挙動は評価対象外。** iOS シミュレータは macOS 専用であり、
+  Windows 環境では自動検証できない
+- 契約に「手動検証項目」節がある場合、**それらは合否判定に含めない**。
+  評価レポートに「手動検証項目: N件（未検証）」として転記し、ユーザーに委ねる
+- デザイン評価は 375px を主軸にする。Web と実機のレンダリング差異があるため、
+  **最終的な見た目の確認は手動である旨をレポートに明記する**
 
 ### Phase 1: 契約のコード化（最重要）
 

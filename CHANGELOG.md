@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.2.0
+
+### ガードの起動を fail-closed に変更（重大）
+
+実運用で **ガードが発火せず、Evaluator によるプロダクトコードへの書き込みが通ってしまう**
+事象が確認された。原因は起動コマンドの設計にある。
+
+```
+変更前: command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.mjs" evaluator'
+変更後: command: node .claude/hooks/guard.mjs evaluator || exit 2
+```
+
+- `${CLAUDE_PROJECT_DIR}` が展開されない環境ではパスが壊れ、node が exit 1 で終わる。
+  **exit 2 以外はブロックとして扱われないため、ガードは黙って開く側に倒れていた**
+- 環境変数依存を除去し相対パスに変更。さらに `|| exit 2` で、起動失敗をブロックに変換した。
+  ガードが壊れたときは「静かに開く」ではなく「うるさく閉じる」
+
+`guard.test.mjs` の冒頭に「守っているつもりが一番危ない」と書きながら、起動経路自体を
+fail-open に作っていた。単体テストが緑であることと、フックが発火することは別問題である。
+
+### /harness-init に発火検証を追加
+
+単体テストの実行しか書いておらず、**フックが実際に発火するかを確認する手順が無かった**。
+実際にサブエージェントを起動して禁止された書き込みを試させ、ブロックされることを
+確認するステップを必須化した。失敗した場合の切り分け手順（パス解決の問題か、
+`hooks:` 自体が効いていないのか）も併記した。
+
+あわせて「**コピー後は必ずセッションを再起動すること**」を明記。同一セッション内では
+エージェントが認識されず `Agent type 'evaluator' not found` になる。
+
+### React Native / Expo 対応
+
+- `docs/design-tokens.ts` を追加。**RN には CSS 変数が存在しない**ため、`design-tokens.css` は
+  Expo Web でだけ効いて**実機で崩れる**（ブラウザでは正しく見えるので発見が遅れる）。
+  iOS/Android で別物になる影、絶対値で指定する `lineHeight`、`expo-font` の読み込み名など
+  RN 固有の落とし穴もコメントで明示した
+- `planner.md` — 契約条件は Expo Web で検証可能な形にする。プッシュ通知・カメラ・課金など
+  ネイティブ限定機能は自動契約に含めず「手動検証項目」節に分離する（混ぜると Evaluator が
+  永久に合格を出せずリトライ上限に達する）
+- `designer.md` — `package.json` でプラットフォームを判別し、トークンの参照先を切り替える。
+  RN では `StyleSheet` / NativeWind 前提。レスポンシブ検証は 375px を主軸に
+- `evaluator.md` — Phase 0.5 でプラットフォームを判別。Expo は Expo Web を評価対象とし、
+  ネイティブ実機の見た目は手動確認である旨をレポートに明記する
+- `runbook.md` — Expo 用の起動コマンドと `playwright.config.ts` の注意点
+
 ## 2.1.0
 
 実運用で見つかった4つの穴を塞いだ。

@@ -6,6 +6,8 @@
 
 ## 起動
 
+### Web プロジェクトの場合
+
 | 項目 | 値 |
 |------|-----|
 | 依存関係のインストール | `npm install` |
@@ -13,6 +15,23 @@
 | ベースURL | `http://localhost:3000` |
 | 起動確認 | `curl -sf http://localhost:3000 > /dev/null && echo OK` |
 | ビルド | `npm run build` |
+
+### React Native / Expo の場合
+
+**評価対象は Expo Web ビルド。** iOS シミュレータは macOS 専用のため、Windows 環境では
+ネイティブの自動E2Eができない。Playwright は `expo start --web` が出力する DOM を操作する。
+
+| 項目 | 値 |
+|------|-----|
+| 依存関係のインストール | `npm install` |
+| 開発サーバー起動（評価用） | `npx expo start --web` |
+| ベースURL | `http://localhost:8081`（実際のポートは起動ログを見て書き換える） |
+| 実機確認（手動） | `npx expo start` → Expo Go でQRを読む |
+| 型チェック | `npx tsc --noEmit` |
+
+`playwright.config.ts` の `webServer.command` に `npx expo start --web` を設定し、
+`url` をベースURLに合わせる。Metro の初回起動は時間がかかるため `timeout` は
+120000 以上にしておくこと。
 
 ## テスト
 

@@ -16,7 +16,7 @@ hooks:
     - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
       hooks:
         - type: command
-          command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.mjs" designer'
+          command: node .claude/hooks/guard.mjs designer || exit 2
 ---
 
 あなたはUIデザイナーです。Generator が実装した機能的に動くコードに対して、デザイントークンと参考画像に基づいてビジュアルを仕上げます。
@@ -46,6 +46,40 @@ PreToolUse フックが以下をブロックする：
 | Generator の完了報告 | `docs/sprints/sprint-N/generator-report.md` |
 | 起動方法 | `docs/runbook.md` |
 | 契約 | `docs/sprints/sprint-N/contract.md` |
+
+### プラットフォームの判別（最初にやること）
+
+`package.json` に `expo` / `react-native` があるかを確認し、トークンの参照先を切り替える。
+
+| プロジェクト | トークンの正本 | スタイルの書き方 |
+|---|---|---|
+| **React Native / Expo** | `docs/design-tokens.ts` | `StyleSheet.create` または NativeWind |
+| Web | `docs/design-tokens.css` | CSS 変数 `var(--color-primary)` |
+
+**RN/Expo で `design-tokens.css` を使ってはならない。** React Native に CSS 変数は存在せず、
+Expo Web でだけ効いてしまうため、**ブラウザでは正しく見えるのに実機で崩れる**という
+最悪の壊れ方をする。必ず `docs/design-tokens.ts` から import すること。
+
+```ts
+import { colors, spacing, radius, shadow } from "@/docs/design-tokens";
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.bgElevated,
+    padding: spacing[4],
+    borderRadius: radius.md,
+    ...shadow.sm,
+  },
+});
+```
+
+**RN 固有の注意点:**
+- 影は iOS（`shadow*`）と Android（`elevation`）で別物。`shadow.*` トークンは両方を含んでいるので
+  スプレッドで展開して使う。片方だけ書くと一方の OS で影が消える
+- `lineHeight` は倍率ではなく**絶対値(dp)**。`typography.size.base * typography.leading.normal` で計算する
+- フォントは `expo-font` で読み込んだ実際の名前を指定する。未読み込みの名前を書くと
+  **ネイティブでは警告も出ずに既定フォントになる**
+- `gap` は RN 0.71+ でのみ使える。古い環境では margin で組む
 
 ### デザイントークンの扱い
 
@@ -96,7 +130,7 @@ PreToolUse フックが以下をブロックする：
 4. `browser_navigate` + `browser_take_screenshot` で **着手前の状態** を記録する
 5. デザイントークンを適用する（色、フォント、スペーシング等）
 6. 参考画像の方向性に合わせてレイアウト・装飾を調整する
-7. `browser_resize` で 375 / 768 / 1280 px を確認する
+7. `browser_resize` で幅を確認する（**RN/Expo は 375px が本命**。768/1280 はタブレット対応が契約にある場合のみ。Web プロジェクトは 375/768/1280 の3幅すべて）7. `browser_resize` で 375 / 768 / 1280 px を確認する
 8. **`npm run e2e` を実行し、機能が壊れていないことをテストで証明する**
 9. `docs/sprints/sprint-N/designer-report.md` を書き出す
 10. git チェックポイントをコミットする（`sprint-N: designer`）
