@@ -34,6 +34,11 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 「Evaluator は自分でコードを修正しない」を散文で書いても、LLM は状況次第で破ります。
 `.claude/hooks/guard.mjs` が PreToolUse で実際にブロックします。Bash 経由の書き込み（リダイレクト・`tee`・`sed -i`）も塞いであります。
 
+**フックの登録は各エージェントの frontmatter で完結しています。`.claude/settings.json` は不要です。**
+`hooks:` はサブエージェント専用にスコープされる正式なフィールドで、これによって役割ごとに
+異なる制限をかけています。settings.json に登録するとセッション全体に適用され、
+役割ごとの境界という設計が壊れるため、**追加しないでください**。
+
 ガード自体にも回帰テストがあります:
 
 ```bash
@@ -115,6 +120,19 @@ Planner が `docs/spec.md` と `docs/sprints/sprint-N/contract.md` を生成し�
 実装 → デザイン → 評価が自動で流れます。不合格なら差し戻し先のエージェントに戻り、
 合格するまでループします（上限3回）。
 
+### 3. デザインを手直しする（任意）
+
+```
+/polish 1 カードの余白をもっと広く
+```
+
+Evaluator の合格はルーブリックによる判定であって、あなたの好みではありません。
+実物を見て直したい箇所があれば `/polish` で Designer に反映させます。
+非破壊確認は `npm run e2e` だけで済むため、数秒で回ります。
+
+値の話（余白・色・サイズ）は `design-tokens.css` に、判断の話（方針・禁止事項）は
+Designer の記憶（`memory: project`）に残るので、**同じ指摘を毎スプリント繰り返さずに済みます**。
+
 ### 手動で呼ぶ場合
 
 ```
@@ -152,6 +170,7 @@ your-project/
 │   ├── commands/
 │   │   ├── plan.md                # /plan
 │   │   ├── sprint.md              # /sprint N
+│   │   ├── polish.md              # /polish N
 │   │   └── harness-init.md        # /harness-init
 │   └── hooks/
 │       ├── guard.mjs              # 役割境界の強制
