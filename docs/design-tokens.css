@@ -1,0 +1,164 @@
+/*
+ * Design Tokens — 正本 (single source of truth)
+ *
+ * Designer はこのファイルを import して var() で参照する。
+ * hex 値を手で書き写さないこと（転記ミスが Evaluator の
+ * 「トークン外の値」チェックで不合格になる）。
+ *
+ * 使い方:
+ *   @import "../docs/design-tokens.css";
+ *   .button { background: var(--color-primary); }
+ *
+ * プロジェクトに合わせて値を差し替えてください。
+ * 変数名は変えず、値だけを変えるのが安全です。
+ */
+
+:root {
+  /* ---- Color: primitive ---- */
+  --color-primary: #111111;
+  --color-primary-hover: #2a2a2a;
+  --color-accent: #0066ff;
+  --color-accent-hover: #0052cc;
+
+  /* ---- Color: surface ---- */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-elevated: #ffffff;
+  --color-border: #e0e0e0;
+  --color-border-strong: #c4c4c4;
+
+  /* ---- Color: text ---- */
+  --color-text: #111111;
+  --color-text-secondary: #666666;
+  --color-text-muted: #8a8a8a;
+  --color-text-on-primary: #ffffff;
+
+  /* ---- Color: status ---- */
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  --color-info: #0284c7;
+
+  /* ---- Focus ---- */
+  --color-focus-ring: #0066ff;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-focus-ring) 40%, transparent);
+
+  /* ---- Typography ---- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --text-xs: 0.75rem;   /* 12px */
+  --text-sm: 0.875rem;  /* 14px */
+  --text-base: 1rem;    /* 16px */
+  --text-lg: 1.125rem;  /* 18px */
+  --text-xl: 1.25rem;   /* 20px */
+  --text-2xl: 1.5rem;   /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem;  /* 36px */
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
+  /* ---- Spacing (4px スケール) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* ---- Radius ---- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* ---- Shadow ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* ---- Motion ---- */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Layout ---- */
+  --container-max: 1200px;
+  --bp-mobile: 375px;
+  --bp-tablet: 768px;
+  --bp-desktop: 1280px;
+}
+
+/* ダークモード: 値だけを差し替える。変数名は共通のまま */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-primary: #f5f5f5;
+    --color-primary-hover: #e0e0e0;
+    --color-accent: #4d94ff;
+    --color-accent-hover: #6ba6ff;
+
+    --color-bg: #0d0d0d;
+    --color-bg-secondary: #1a1a1a;
+    --color-bg-elevated: #1f1f1f;
+    --color-border: #2e2e2e;
+    --color-border-strong: #454545;
+
+    --color-text: #f5f5f5;
+    --color-text-secondary: #a3a3a3;
+    --color-text-muted: #737373;
+    --color-text-on-primary: #0d0d0d;
+
+    --color-success: #4ade80;
+    --color-error: #f87171;
+    --color-warning: #fbbf24;
+    --color-info: #38bdf8;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #f5f5f5;
+  --color-primary-hover: #e0e0e0;
+  --color-accent: #4d94ff;
+  --color-accent-hover: #6ba6ff;
+
+  --color-bg: #0d0d0d;
+  --color-bg-secondary: #1a1a1a;
+  --color-bg-elevated: #1f1f1f;
+  --color-border: #2e2e2e;
+  --color-border-strong: #454545;
+
+  --color-text: #f5f5f5;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #737373;
+  --color-text-on-primary: #0d0d0d;
+
+  --color-success: #4ade80;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+  --color-info: #38bdf8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}

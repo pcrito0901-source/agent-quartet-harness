@@ -3,30 +3,96 @@
 Claude Code のサブエージェント4体によるスプリント駆動開発ハーネス。
 
 ```
-@planner → @generator → @designer → @evaluator
-                ↑                        │
-                └── 不合格時のフィードバック ──┘
+/plan → @agent-planner
+          ↓
+/sprint N → @agent-generator → @agent-designer → @agent-evaluator
+                   ↑                                    │
+                   └────── 不合格時のフィードバック ──────┘
+                              （リトライ上限3回）
 ```
 
 ## 4つのエージェント
 
-| エージェント | 役割 | model |
+| エージェント | 役割 | 書き込める範囲（フックで強制） |
 |---|---|---|
-| **@planner** | 短いプロンプトから製品仕様書とスプリント計画を生成 | opus |
-| **@generator** | スプリント契約に基づいてコードを実装 | opus |
-| **@designer** | デザイントークンと参考画像でUIを仕上げ | opus |
-| **@evaluator** | Playwright MCP で実操作テスト・合否判定 | opus |
+| **@agent-planner** | 短いプロンプトから仕様書とスプリント契約を生成 | `docs/` のみ |
+| **@agent-generator** | 契約に基づいてコードを実装 | 仕様・契約以外の全体 |
+| **@agent-designer** | トークンと参考画像でUIを仕上げ | 全体（新規作成はスタイル/アセットのみ） |
+| **@agent-evaluator** | 契約をE2Eテストに変換して実行・合否判定 | `docs/`, `e2e/`, `tests/` のみ |
+
+## このハーネスの3つの仕掛け
+
+普通の「AIに丁寧に指示する」やり方との違いはこの3点です。
+
+### 1. 引き継ぎをファイルで行う
+
+サブエージェントは独立したコンテキストで起動するため、**チャットに出力された完了報告は次のエージェントから見えません。**
+各エージェントは報告を `docs/sprints/sprint-N/*.md` に書き出し、次のエージェントにはパスを渡します。
+
+### 2. 役割境界をフックで強制する
+
+「Evaluator は自分でコードを修正しない」を散文で書いても、LLM は状況次第で破ります。
+`.claude/hooks/guard.mjs` が PreToolUse で実際にブロックします。Bash 経由の書き込み（リダイレクト・`tee`・`sed -i`）も塞いであります。
+
+ガード自体にも回帰テストがあります:
+
+```bash
+node --test .claude/hooks/guard.test.mjs
+```
+
+### 3. 契約が実行可能なテストになる
+
+Evaluator は契約条件を目視確認するのではなく、`e2e/sprint-N.spec.ts` に変換して実行します。
+**契約条件 1件 = `test()` 1件。**
+
+- 再評価が数秒・決定的になる（ブラウザ操作を毎回やり直さない）
+- 契約が累積する回帰スイートになる
+- Sprint 3 の実装が Sprint 1 の機能を壊したら、その場で検出される
 
 ## セットアップ
 
-1. このリポジトリの `.claude/agents/` と `CLAUDE.md` を自分のプロジェクトにコピーする
-2. デザイントークンを `/docs/design-tokens.md` に用意する
-3. 参考画像を `/docs/design-references/` に配置する
+### 方法A: プラグインとして入れる（推奨）
 
 ```bash
-# 例: 自分のプロジェクトにコピー
-cp -r .claude/agents/ /path/to/your-project/.claude/agents/
-cp CLAUDE.md /path/to/your-project/CLAUDE.md
+claude
+```
+
+Claude Code のセッション内で:
+
+```
+/plugin marketplace add Shin-sibainu/agent-quartet-harness
+```
+
+```
+/plugin install agent-quartet-harness@agent-quartet
+```
+
+インストール後、プロジェクトで一度だけ:
+
+```
+/harness-init
+```
+
+### 方法B: ファイルをコピーする
+
+```bash
+git clone https://github.com/Shin-sibainu/agent-quartet-harness.git
+```
+
+```bash
+cp -r agent-quartet-harness/.claude your-project/
+```
+
+```bash
+cp -r agent-quartet-harness/docs your-project/
+```
+
+既に `CLAUDE.md` がある場合は**上書きせず、内容を追記**してください。
+
+配置後、ガードが動くことを確認します:
+
+```bash
+node --test .claude/hooks/guard.test.mjs
 ```
 
 ## 使い方
@@ -34,53 +100,85 @@ cp CLAUDE.md /path/to/your-project/CLAUDE.md
 ### 1. 計画
 
 ```
-@planner 動画プラットフォームを作りたい。ユーザーが動画をアップロードして視聴できるサービス。
+/plan 動画をアップロードして視聴できるサービスを作りたい
 ```
 
-### 2. 実装
+Planner が `docs/spec.md` と `docs/sprints/sprint-N/contract.md` を生成します。
+**`spec.md` の「確認事項」節（Planner が推測で埋めた前提）を確認してから次に進んでください。**
+
+### 2. スプリントを回す
 
 ```
-@generator Sprint 1を実装して
+/sprint 1
 ```
 
-### 3. デザイン
+実装 → デザイン → 評価が自動で流れます。不合格なら差し戻し先のエージェントに戻り、
+合格するまでループします（上限3回）。
+
+### 手動で呼ぶ場合
 
 ```
-@designer Sprint 1のデザインを仕上げて
+@agent-generator Sprint 1 を実装して。契約は docs/sprints/sprint-1/contract.md
 ```
 
-### 4. 評価
+> **`@planner` ではなく `@agent-planner`** です。`@agent-` 接頭辞が無いとサブエージェントとして解決されません。
 
-```
-@evaluator Sprint 1を評価して
-```
+## 事前準備
 
-Evaluator が合格を出したら次のスプリントへ。不合格なら修正指示に従って該当エージェントに戻す。
+### 必須
+
+- [Claude Code](https://code.claude.com/docs)
+- **Node.js**（ガードスクリプトの実行に使用）
+
+**Playwright MCP の設定は不要です。** Designer と Evaluator の frontmatter に inline 定義されており、
+エージェント起動時に自動で立ち上がります。
+
+### 任意（デザイン品質に効く）
+
+- `docs/design-tokens.css` を自分のプロダクトの色・フォントに差し替える（**正本はCSS**。Markdown版は解説）
+- `docs/design-references/` に参考画像を置く（トーンの方向づけに使われます）
 
 ## ファイル構成
 
 ```
 your-project/
 ├── CLAUDE.md                      # オーケストレーションルール
-├── .claude/agents/
-│   ├── planner.md                 # 仕様策定エージェント
-│   ├── generator.md               # 実装エージェント
-│   ├── designer.md                # デザインエージェント
-│   └── evaluator.md               # QAエージェント
-└── docs/
-    ├── spec.md                    # 製品仕様書（Planner が生成）
-    ├── design-tokens.md           # デザイントークン（ユーザーが用意）
-    ├── design-references/         # 参考画像（ユーザーが用意）
-    └── sprints/
-        ├── sprint-1.md
-        ├── sprint-2.md
-        └── ...
+├── .claude/
+│   ├── agents/                    # 4体のサブエージェント定義
+│   │   ├── planner.md
+│   │   ├── generator.md
+│   │   ├── designer.md
+│   │   └── evaluator.md
+│   ├── commands/
+│   │   ├── plan.md                # /plan
+│   │   ├── sprint.md              # /sprint N
+│   │   └── harness-init.md        # /harness-init
+│   └── hooks/
+│       ├── guard.mjs              # 役割境界の強制
+│       └── guard.test.mjs         # ガードの回帰テスト
+├── docs/
+│   ├── spec.md                    # Planner が生成
+│   ├── runbook.md                 # 起動方法（Sprint 1 で Generator が実値を埋める）
+│   ├── rubric.md                  # デザイン採点アンカー
+│   ├── design-tokens.css          # トークン正本
+│   ├── design-tokens.md           # トークン解説
+│   ├── design-references/         # 参考画像（ユーザーが用意）
+│   └── sprints/
+│       ├── status.md              # 進捗状態
+│       └── sprint-1/
+│           ├── contract.md        # 契約（Planner。以降 読み取り専用）
+│           ├── generator-report.md
+│           ├── designer-report.md
+│           └── evaluation-1.md
+└── e2e/                           # Evaluator が育てる回帰スイート
+    └── sprint-1.spec.ts
 ```
 
-## 前提条件
+## 実行例
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) が使える環境
-- Playwright MCP サーバーの設定（Evaluator・Designer が使用）
+[`examples/video-platform/`](examples/video-platform/) に、動画プラットフォームの Sprint 1 を
+1回差し戻して合格するまでの**全生成物**（仕様書・契約・各報告・評価レポート2ラウンド・E2Eスペック）
+を置いてあります。各エージェントの出力がどういう粒度になるかの参考にしてください。
 
 ## ライセンス
 
