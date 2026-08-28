@@ -9,7 +9,7 @@
       "name": "agent-quartet-harness",
       "source": "./",
       "description": "Planner / Generator / Designer / Evaluator の4体でスプリント駆動開発を回すハーネス",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "license": "MIT",
       "keywords": ["subagents", "sprint", "qa", "playwright", "harness"],
       "author": { "name": "Shin-sibainu" }

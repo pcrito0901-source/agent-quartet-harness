@@ -7,7 +7,8 @@
 ```
 /plan → @agent-planner
           ↓
-/sprint N → @agent-generator → @agent-designer → @agent-evaluator
+/sprint N を3回 → @agent-generator → @agent-designer → @agent-evaluator
+（1回の /sprint で1フェーズだけ実行して停止。間に割り込める）
                    ↑                                    │
                    └────── 不合格時のフィードバック ──────┘
                               （リトライ上限3回）
@@ -49,25 +50,25 @@ docs/sprints/sprint-N/
 
 オーケストレーターは各フェーズ後に**報告ファイルの実在を確認する**。
 
-### 2. 役割境界はフックで強制する
+### 2. 役割境界を決めておく
 
-「Evaluator は自分でコードを修正しない」を散文で書いても、LLM は状況次第で破る。
-`.claude/hooks/guard.mjs` が PreToolUse で実際にブロックする:
+各エージェントが触ってよい範囲を決めてある。
 
-| エージェント | 書き込める範囲 |
+| エージェント | 書き込んでよい範囲 |
 |---|---|
 | Planner | `docs/` のみ |
 | Generator | 全体。ただし `docs/spec.md` と `contract.md` は不可 |
 | Designer | 全体。ただし仕様・契約は不可、かつ**新規作成はスタイル/アセット/ドキュメントのみ** |
-| Evaluator | `docs/`, `e2e/`, `tests/`, `playwright.config.*` のみ |
+| Evaluator | `docs/`, `e2e/`, `tests/` のみ |
 
-Bash 経由の書き込み（リダイレクト・`tee`・`sed -i`）も塞いである。
-ガード自体の回帰テストは `node --test .claude/hooks/guard.test.mjs`。
+**これは現在プロンプトレベルの取り決めであり、機械的には強制されていない。**
+`.claude/hooks/guard.mjs` によるフック強制を実装したが、実環境で発火が確認できず、
+かつ fail-closed 化によって正常な書き込みまで阻害するリスクがあったため無効化した
+（経緯は CHANGELOG 2.3.0）。スクリプトとテストは残してあるので、
+発火が確認でき次第 frontmatter に `hooks:` を戻せば再有効化できる。
 
-**フックの登録は各エージェントの frontmatter で完結している。`.claude/settings.json` は不要。**
-`hooks:` はサブエージェント専用にスコープされた正式なフィールドであり、これによって
-役割ごとに異なる制限をかけている。settings.json に登録するとセッション全体に適用されてしまい、
-「役割ごとの境界」という設計そのものが成立しなくなる。追加してはならない。
+**越境はオーケストレーターが各フェーズ後の `git diff` で確認する。**
+Evaluator のコミットにプロダクトコードの変更が混ざっていたら、それは越境である。
 
 ### 3. 契約は実行可能なテストになる
 
@@ -96,7 +97,10 @@ Planner はサブエージェントのため `AskUserQuestion` が使えない�
 /sprint 1
 ```
 
-`/sprint` が Generator → Designer → Evaluator を順に回し、不合格なら差し戻し先に戻す。
+**`/sprint` は1回につき1フェーズだけ実行して停止します。** 実装 → デザイン → 評価と進めるには
+3回実行します。各フェーズの結果を見てから次に進めるので、途中で割り込んで別の指示を出せます。
+
+不合格なら、次の `/sprint` 実行時に差し戻し先のエージェントへ自動的に戻ります。
 
 ### 5. デザインの手直し（任意）
 
