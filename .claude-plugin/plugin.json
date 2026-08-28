@@ -2,7 +2,7 @@
   "name": "agent-quartet-harness",
   "displayName": "Agent Quartet Harness",
   "description": "Planner / Generator / Designer / Evaluator の4体でスプリント駆動開発を回すハーネス。役割境界をフックで強制し、スプリント契約をE2E回帰テストに変換する。",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "author": {
     "name": "Shin-sibainu",
     "url": "https://github.com/Shin-sibainu"

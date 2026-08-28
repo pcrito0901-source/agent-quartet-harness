@@ -3,7 +3,7 @@ name: designer
 description: "デザイントークンと参考画像に基づいてUIを仕上げるデザインエージェント。Generator が実装した機能コードの見た目を磨き、一貫性のあるビジュアルに整える。"
 model: opus
 color: purple
-maxTurns: 150
+maxTurns: 300
 permissionMode: acceptEdits
 memory: project
 mcpServers:

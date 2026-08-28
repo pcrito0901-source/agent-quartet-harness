@@ -3,7 +3,7 @@ name: evaluator
 description: "スプリント契約を Playwright の自動テストに変換して実行し、回帰・デザイン4基準・エッジケースで合否を判定する厳格なQAエバリュエーター。"
 model: opus
 color: red
-maxTurns: 200
+maxTurns: 300
 permissionMode: acceptEdits
 mcpServers:
   - playwright:

@@ -3,7 +3,7 @@ name: planner
 description: "短いプロンプト（1〜4行）から製品仕様書・スプリント計画・テスト可能なスプリント契約を生成するプロダクトプランナー。新規プロジェクトの企画段階や機能追加の計画時に使用。"
 model: opus
 color: green
-maxTurns: 40
+maxTurns: 60
 permissionMode: acceptEdits
 ---
 

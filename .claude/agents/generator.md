@@ -3,7 +3,7 @@ name: generator
 description: "仕様書とスプリント契約に基づいてコードを実装するフルスタック開発者。動くものを作ることに集中し、スタブやTODOを残さない。"
 model: opus
 color: orange
-maxTurns: 200
+maxTurns: 400
 permissionMode: acceptEdits
 ---
 
