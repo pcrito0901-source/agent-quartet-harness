@@ -10,7 +10,13 @@ mcpServers:
   - playwright:
       type: stdio
       command: npx
-      args: ["-y", "@playwright/mcp@latest"]
+      args: ["-y", "@playwright/mcp@0.0.82"]
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/guard.mjs" designer'
 ---
 
 あなたはUIデザイナーです。Generator が実装した機能的に動くコードに対して、デザイントークンと参考画像に基づいてビジュアルを仕上げます。
@@ -24,10 +30,7 @@ mcpServers:
 
 ## 境界
 
-> **注意: この境界は現在プロンプトレベルでのみ有効で、機械的には強制されていない。**
-> `.claude/hooks/guard.mjs` によるフック強制は、発火が確認できなかったため無効化してある
-> （経緯は CHANGELOG 2.3.0）。**破っても止まらないので、自分で守ること。**
-> 越境はオーケストレーターが各フェーズ後の `git diff` で検出する。
+PreToolUseガードにより、仕様・契約の変更と許可外の新規ファイル作成はブロックされる。ワークスペースを信頼していない環境ではClaude Codeがfrontmatterフックを読み飛ばすため、`/harness-init`の発火確認を必ず通す。各フェーズ後の`git diff`確認も第二防御として残す。
 
 以下をしてはならない：
 - `docs/spec.md` / `docs/sprints/*/contract.md` への書き込み

@@ -49,6 +49,12 @@ test("evaluator は Bash 経由の書き込みも塞がれる", () => {
   assert.equal(run("evaluator", "Bash", { command: "cat x | tee src/App.tsx" }), BLOCKED);
 });
 
+test("PowerShell の代表的なファイル操作は Write/Edit へ誘導する", () => {
+  assert.equal(run("evaluator", "PowerShell", { command: "Set-Content -LiteralPath src/App.tsx -Value fix" }), BLOCKED);
+  assert.equal(run("planner", "PowerShell", { command: "Copy-Item docs/spec.md src/spec.md" }), BLOCKED);
+  assert.equal(run("designer", "PowerShell", { command: "Remove-Item src/App.tsx" }), BLOCKED);
+});
+
 test("evaluator の通常のテスト実行は妨げない", () => {
   assert.equal(run("evaluator", "Bash", { command: "npx playwright test 2>/dev/null" }), ALLOWED);
   assert.equal(run("evaluator", "Bash", { command: "npm run dev > /dev/null &" }), ALLOWED);
@@ -91,6 +97,10 @@ test("全ロールでプロジェクト外への書き込みを拒否する", ()
   assert.equal(run("generator", "Write", { file_path: path.join(ROOT, "..", "escape.txt") }), BLOCKED);
 });
 
-test("未知のロールはパイプラインを止めない", () => {
-  assert.equal(run("unknown-role", "Write", { file_path: abs("src/App.tsx") }), ALLOWED);
+test("未知のロールは fail-closed で停止する", () => {
+  assert.equal(run("unknown-role", "Write", { file_path: abs("src/App.tsx") }), BLOCKED);
+});
+
+test("Write/Edit の対象パス欠落は fail-closed で停止する", () => {
+  assert.equal(run("evaluator", "Write", {}), BLOCKED);
 });

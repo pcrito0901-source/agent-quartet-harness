@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.4.0
+
+### 役割境界ガードを公式仕様に合わせて再有効化
+
+- 4エージェントのsubagent frontmatterにPreToolUseフックを復元
+- プラグイン内のスクリプトを`${CLAUDE_PLUGIN_ROOT}`から解決
+- 未知ロール、壊れたJSON、対象パス欠落をfail-closed化
+- Windowsの代表的なPowerShellファイル操作をブロックし、Write/Editへ誘導
+- frontmatter配線を検証する回帰テストを追加
+- 未信頼ワークスペースではフックが読み飛ばされることと、発火確認手順を明記
+
+### Windows・Expo・リリース運用
+
+- Playwright MCPを`0.0.82`へ固定し、突然の更新による再現性低下を防止
+- runbookへPowerShellの起動確認とネイティブ配布欄を追加
+- `/release-check`を追加。Expo WebとiOS実機確認を分離し、提出承認前で停止
+- `docs/release-checklist.md`を追加
+
+### Codex・cc-company連携
+
+- `/handoff-codex N`を追加
+- 契約、実装、デザイン、評価、発信素材を秘密情報なしの引き継ぎ文書へまとめる
+
 ## 2.3.1
 
 ### maxTurns を引き上げ

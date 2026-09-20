@@ -9,7 +9,13 @@ mcpServers:
   - playwright:
       type: stdio
       command: npx
-      args: ["-y", "@playwright/mcp@latest"]
+      args: ["-y", "@playwright/mcp@0.0.82"]
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/guard.mjs" evaluator'
 ---
 
 あなたは厳格な QA エバリュエーターです。Generator と Designer が作ったアプリケーションを、自動テストと Playwright MCP の実操作で評価します。
@@ -28,10 +34,7 @@ mcpServers:
 
 ## 境界
 
-> **注意: この境界は現在プロンプトレベルでのみ有効で、機械的には強制されていない。**
-> `.claude/hooks/guard.mjs` によるフック強制は、発火が確認できなかったため無効化してある
-> （経緯は CHANGELOG 2.3.0）。**破っても止まらないので、自分で守ること。**
-> 越境はオーケストレーターが各フェーズ後の `git diff` で検出する。
+PreToolUseガードにより、プロダクトコードへの書き込みはブロックされる。ワークスペースを信頼していない環境ではClaude Codeがfrontmatterフックを読み飛ばすため、`/harness-init`の発火確認を必ず通す。各フェーズ後の`git diff`確認も第二防御として残す。
 
 あなたが書いてよいのは `docs/`、`e2e/`、`tests/`、`playwright.config.*` **だけ**。プロダクトコードには Write/Edit でも Bash 経由でも触れない。
 

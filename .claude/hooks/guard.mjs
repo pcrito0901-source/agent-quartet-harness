@@ -59,26 +59,26 @@ const ROLES = {
 };
 
 const role = process.argv[2];
-const cfg = ROLES[role];
-if (!cfg) process.exit(0); // 未知のロールは素通し（ガードの誤設定でパイプラインを止めない）
-
 const block = (msg) => {
   process.stderr.write(`[harness guard: ${role}] ${msg}\n`);
   process.exit(2);
 };
 
+const cfg = ROLES[role];
+if (!cfg) block("未知のロールです。ガード設定を確認してください。");
+
 let stdin = "";
 try {
   stdin = readFileSync(0, "utf8");
 } catch {
-  process.exit(0);
+  block("フック入力を読み取れませんでした。");
 }
 
 let payload;
 try {
   payload = JSON.parse(stdin);
 } catch {
-  process.exit(0);
+  block("フック入力が有効なJSONではありません。");
 }
 
 const root = process.env.CLAUDE_PROJECT_DIR || payload.cwd || process.cwd();
@@ -110,6 +110,7 @@ const checkPath = (target, isNewFile) => {
 
 if (toolName === "Write" || toolName === "Edit" || toolName === "NotebookEdit") {
   const raw = input.file_path || input.notebook_path;
+  if (!raw) block(`${toolName}の対象パスがありません。`);
   const target = rel(raw);
   const isNewFile =
     toolName === "Write" && raw != null && !existsSync(path.isAbsolute(raw) ? raw : path.resolve(root, raw));
@@ -119,6 +120,13 @@ if (toolName === "Write" || toolName === "Edit" || toolName === "NotebookEdit") 
 
 if (toolName === "Bash" || toolName === "PowerShell") {
   const cmd = String(input.command || "");
+
+  // PowerShellの代表的な書き込みコマンドは対象パスの静的解析が不安定なため、
+  // ガード対象エージェントではWrite/Editツールへ寄せる。
+  const powershellWrite = /(^|[;&|({\s])(Set-Content|Add-Content|Out-File|New-Item|Copy-Item|Move-Item|Remove-Item|Rename-Item)\b/i;
+  if (powershellWrite.test(cmd)) {
+    block(`PowerShellのファイル操作コマンドは使用できません。対象を検証できるWrite/Editツールを使ってください。${cfg.reason}`);
+  }
 
   // 明示的なインプレース書き換えは、対象を静的に判定しづらいので一律ブロックする
   const inPlace = /(^|[;&|(\s])(sed\s+-i|perl\s+-i|truncate\b|dd\s+of=|shred\b)/;

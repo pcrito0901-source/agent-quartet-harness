@@ -34,13 +34,10 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 各エージェントが触ってよい範囲を決めてあります（Planner は `docs/` のみ、
 Evaluator は `docs/` と `e2e/` のみ、など）。
 
-> **現在この境界はプロンプトレベルの取り決めで、機械的には強制されていません。**
-> `.claude/hooks/guard.mjs` によるフック強制を実装しましたが、実環境で発火が確認できず、
-> 正常な書き込みまで阻害するリスクがあったため無効化しています（CHANGELOG 2.3.0）。
-> スクリプトとテスト（12件）は残してあるので、発火を確認でき次第
-> 各エージェントの frontmatter に `hooks:` を戻せば再有効化できます。
->
-> 越境は各フェーズ後の `git diff` で確認してください。
+> **v2.4.0で役割境界ガードを再有効化しました。** Claude Code公式のsubagent frontmatterフックと
+> `${CLAUDE_PLUGIN_ROOT}`を使います。ワークスペースを信頼していない場合はClaude Codeが
+> フックを読み飛ばすため、導入後に`/harness-init`の発火確認を必ず実行してください。
+> ガードは完全なサンドボックスではないため、各フェーズ後の`git diff`確認も残しています。
 
 ### 3. 契約が実行可能なテストになる
 
@@ -89,12 +86,22 @@ cp -r agent-quartet-harness/.claude your-project/
 cp -r agent-quartet-harness/docs your-project/
 ```
 
+PowerShellの場合:
+
+```powershell
+Copy-Item -Recurse -Force agent-quartet-harness\.claude your-project\
+Copy-Item -Recurse -Force agent-quartet-harness\docs your-project\
+```
+
+手動コピー方式では、`.claude/agents/*.md`のフックパスを
+`${CLAUDE_PLUGIN_ROOT}`から`${CLAUDE_PROJECT_DIR}`へ置き換えてください。
+
 既に `CLAUDE.md` がある場合は**上書きせず、内容を追記**してください。
 
 配置後、ガードが動くことを確認します:
 
 ```bash
-node --test .claude/hooks/guard.test.mjs
+node --test ".claude/hooks/*.test.mjs"
 ```
 
 ## 使い方
@@ -132,6 +139,24 @@ Evaluator の合格はルーブリックによる判定であって、あなた�
 値の話（余白・色・サイズ）は `design-tokens.css` に、判断の話（方針・禁止事項）は
 Designer の記憶（`memory: project`）に残るので、**同じ指摘を毎スプリント繰り返さずに済みます**。
 
+### 4. リリース前に確認する
+
+```
+/release-check 1.0.0
+```
+
+Webテスト、Expo/React Nativeのネイティブ手動確認、App Store情報を分けて確認し、
+`docs/releases/release-readiness.md`へ記録します。アップロードや提出は行わず、必ず人間の承認前で止まります。
+
+### 5. Codex・cc-companyへ引き継ぐ
+
+```
+/handoff-codex 1
+```
+
+Sprint 1の契約、実装、デザイン、評価、発信素材を
+`docs/handoffs/sprint-1-codex.md`へまとめます。Codexはこのファイルを読み、調査、記録、SNS投稿案へ再利用できます。
+
 ### 手動で呼ぶ場合
 
 ```
@@ -146,9 +171,10 @@ Designer の記憶（`memory: project`）に残るので、**同じ指摘を毎�
 
 - [Claude Code](https://code.claude.com/docs)
 - **Node.js**（ガードスクリプトの実行に使用）
+- プロジェクトを信頼済みにすること（未信頼のフォルダではsubagent frontmatterフックが読み飛ばされます）
 
-**Playwright MCP の設定は不要です。** Designer と Evaluator の frontmatter に inline 定義されており、
-エージェント起動時に自動で立ち上がります。
+**Playwright MCP の設定は不要です。** Designer と Evaluator の frontmatter に検証済みバージョン
+`@playwright/mcp@0.0.82`を固定しており、エージェント起動時に自動で立ち上がります。
 
 ### 任意（デザイン品質に効く）
 
@@ -172,6 +198,8 @@ your-project/
 │   │   ├── plan.md                # /plan
 │   │   ├── sprint.md              # /sprint N
 │   │   ├── polish.md              # /polish N
+│   │   ├── release-check.md        # /release-check
+│   │   ├── handoff-codex.md        # /handoff-codex N
 │   │   └── harness-init.md        # /harness-init
 │   └── hooks/
 │       ├── guard.mjs              # 役割境界の強制
@@ -179,6 +207,7 @@ your-project/
 ├── docs/
 │   ├── spec.md                    # Planner が生成
 │   ├── runbook.md                 # 起動方法（Sprint 1 で Generator が実値を埋める）
+│   ├── release-checklist.md        # Windows・Expo・App Store提出前の共通確認
 │   ├── rubric.md                  # デザイン採点アンカー
 │   ├── design-tokens.css          # トークン正本
 │   ├── design-tokens.md           # トークン解説

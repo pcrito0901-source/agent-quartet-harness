@@ -15,6 +15,9 @@
                                                         ↓ 合格
                                           /polish → @agent-designer
                                           （ユーザーの手直し。任意）
+                                                        ↓
+                                          /release-check（提出前確認）
+                                          /handoff-codex（業務・発信用引継ぎ）
 ```
 
 ### 各エージェントの役割
@@ -61,13 +64,10 @@ docs/sprints/sprint-N/
 | Designer | 全体。ただし仕様・契約は不可、かつ**新規作成はスタイル/アセット/ドキュメントのみ** |
 | Evaluator | `docs/`, `e2e/`, `tests/` のみ |
 
-**これは現在プロンプトレベルの取り決めであり、機械的には強制されていない。**
-`.claude/hooks/guard.mjs` によるフック強制を実装したが、実環境で発火が確認できず、
-かつ fail-closed 化によって正常な書き込みまで阻害するリスクがあったため無効化した
-（経緯は CHANGELOG 2.3.0）。スクリプトとテストは残してあるので、
-発火が確認でき次第 frontmatter に `hooks:` を戻せば再有効化できる。
-
-**越境はオーケストレーターが各フェーズ後の `git diff` で確認する。**
+**v2.4.0でsubagent frontmatterのPreToolUseガードを再有効化した。**
+プラグイン内のスクリプトは`${CLAUDE_PLUGIN_ROOT}`から解決する。未信頼のワークスペースでは
+Claude Codeがfrontmatterフックを読み飛ばすため、導入時に`/harness-init`の発火確認を必ず通す。
+ガードは完全なサンドボックスではないため、**オーケストレーターは各フェーズ後の`git diff`も確認する。**
 Evaluator のコミットにプロダクトコードの変更が混ざっていたら、それは越境である。
 
 ### 3. 契約は実行可能なテストになる
@@ -123,6 +123,13 @@ Evaluator を丸ごと回す必要はない。
 - Generator に戻した場合、修正後は Designer も再実行する（実装変更でデザインが崩れうるため）
 - **リトライ上限は3回。** 到達したらループを止めてユーザーに判断を仰ぐ
 
+### 7. リリースと外部引き継ぎ
+
+- `/release-check [バージョン]`は読み取りと検証だけを行い、`docs/releases/release-readiness.md`へ結果を保存する
+- ビルドのアップロード、TestFlight配布、審査提出、公開は実行直前に人間の明示承認を得る
+- `/handoff-codex N`は`docs/handoffs/sprint-N-codex.md`を作り、Codexやcc-companyへ渡す
+- 引き継ぎ文書には秘密、トークン、`.env`、テスト用パスワードを含めない
+
 ## ファイル構成
 
 ```
@@ -130,13 +137,14 @@ Evaluator を丸ごと回す必要はない。
 ├── CLAUDE.md
 ├── .claude/
 │   ├── agents/           # 4体のサブエージェント定義
-│   ├── commands/         # /plan, /sprint, /polish, /harness-init
+│   ├── commands/         # /plan, /sprint, /polish, /release-check, /handoff-codex, /harness-init
 │   └── hooks/
 │       ├── guard.mjs     # 役割境界の強制
 │       └── guard.test.mjs
 ├── docs/
 │   ├── spec.md                # Planner が生成
 │   ├── runbook.md             # 起動方法（Sprint 1 で Generator が実値を埋める）
+│   ├── release-checklist.md    # ネイティブ・App Store提出前の確認
 │   ├── rubric.md              # デザイン採点アンカー
 │   ├── design-tokens.css      # トークン正本
 │   ├── design-tokens.md       # トークン解説
@@ -151,6 +159,7 @@ Evaluator を丸ごと回す必要はない。
 ## ルール
 
 - **React Native / Expo の場合、評価対象は `expo start --web` の Expo Web ビルド。** iOS シミュレータは macOS 専用のため Windows ではネイティブの自動E2Eができない。ネイティブ限定機能（プッシュ通知・カメラ・課金など）は自動契約に含めず、契約の「手動検証項目」節に分離する
+- Expo Webの合格をiOS実機の合格として扱わない。公開前に`/release-check`を実行し、配布用ビルドと実機またはTestFlightで手動確認する
 - **React Native / Expo では `docs/design-tokens.ts` を使う。** `.css` は Expo Web でだけ効いて実機で崩れる
 - **スプリントは縦切りにする。** 各スプリントは UI からデータ永続化まで貫通した、単体で価値のある機能とする。「Sprint 1: モック画面 / Sprint 2: バックエンド」のようなレイヤー単位の分割は禁止（E2E テストが資産にならず、回帰検出が機能しなくなる）
 - スプリントは必ず番号順に実行する。Sprint 2 を Sprint 1 より先に実行してはならない

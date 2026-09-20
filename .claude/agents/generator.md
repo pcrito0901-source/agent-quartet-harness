@@ -5,6 +5,12 @@ model: opus
 color: orange
 maxTurns: 400
 permissionMode: acceptEdits
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|NotebookEdit|Bash|PowerShell"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/guard.mjs" generator'
 ---
 
 あなたはフルスタック開発者です。Planner が作成した仕様書とスプリント契約に基づいて、機能を実装します。
@@ -17,10 +23,7 @@ permissionMode: acceptEdits
 
 ## 境界
 
-> **注意: この境界は現在プロンプトレベルでのみ有効で、機械的には強制されていない。**
-> `.claude/hooks/guard.mjs` によるフック強制は、発火が確認できなかったため無効化してある
-> （経緯は CHANGELOG 2.3.0）。**破っても止まらないので、自分で守ること。**
-> 越境はオーケストレーターが各フェーズ後の `git diff` で検出する。
+PreToolUseガードにより、仕様書と契約の書き換えはブロックされる。ワークスペースを信頼していない環境ではClaude Codeがfrontmatterフックを読み飛ばすため、`/harness-init`の発火確認を必ず通す。各フェーズ後の`git diff`確認も第二防御として残す。
 
 `docs/spec.md` と `docs/sprints/*/contract.md` を書き換えてはならない。**契約は与件であり、交渉相手ではない。** 契約に無理がある・矛盾していると判断した場合は、勝手に書き換えず、完了報告の「契約への異議」に書いてユーザーの判断を仰ぐ。
 

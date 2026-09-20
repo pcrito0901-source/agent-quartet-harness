@@ -13,7 +13,8 @@
 | 依存関係のインストール | `npm install` |
 | 開発サーバー起動 | `npm run dev` |
 | ベースURL | `http://localhost:3000` |
-| 起動確認 | `curl -sf http://localhost:3000 > /dev/null && echo OK` |
+| 起動確認（PowerShell） | `(Invoke-WebRequest http://localhost:3000 -UseBasicParsing).StatusCode` |
+| 起動確認（bash） | `curl -sf http://localhost:3000 >/dev/null` |
 | ビルド | `npm run build` |
 
 ### React Native / Expo の場合
@@ -28,6 +29,16 @@
 | ベースURL | `http://localhost:8081`（実際のポートは起動ログを見て書き換える） |
 | 実機確認（手動） | `npx expo start` → Expo Go でQRを読む |
 | 型チェック | `npx tsc --noEmit` |
+
+Expo Webの合格はiOSネイティブの合格ではない。配布前は`/release-check`を実行し、
+プロジェクトで採用しているクラウドビルドまたはmacOSビルド環境のコマンドをこの表へ追記する。
+EASを採用していないプロジェクトへ、EASコマンドを推測で追加しない。
+
+| ネイティブ配布 | 値 |
+|---|---|
+| ビルド方式 | （EAS Build / Xcode Cloud / GitHub Actions macOS / その他） |
+| 検証用ビルド | （実際のコマンド） |
+| TestFlight配布 | （実際のコマンドまたは手順。自動実行には承認が必要） |
 
 `playwright.config.ts` の `webServer.command` に `npx expo start --web` を設定し、
 `url` をベースURLに合わせる。Metro の初回起動は時間がかかるため `timeout` は
