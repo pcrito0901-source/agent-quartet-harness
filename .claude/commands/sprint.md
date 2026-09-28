@@ -24,7 +24,8 @@ Sprint $1 の **次の1フェーズだけ**を実行してください。あな�
 
 | 現在のフェーズ | 次に実行するもの |
 |---|---|
-| 未着手 / 計画済み | **Phase A: 実装** |
+| 計画済み で、契約に「見た目の案」節がある | **Phase A0: 見た目の案** |
+| 未着手 / 計画済み / 案選択済み | **Phase A: 実装** |
 | 実装済み | **Phase B: デザイン** |
 | デザイン済み | **Phase C: 評価** |
 | 不合格 | 評価レポートの「差し戻し先」に応じて **Phase A または B** |
@@ -38,6 +39,15 @@ Sprint $1 の **次の1フェーズだけ**を実行してください。あな�
 
 ### 2. 該当フェーズを1つだけ実行する
 
+**Phase A0: 見た目の案** —— 見た目を「詰める／削る／1画面に収める」回だけ。`@agent-designer` を**案モード**で起動する。渡すもの:
+- 契約の「見た目の案」節と、元になったユーザーの言葉（原文のまま）
+- 書き出し先: `docs/sprints/sprint-$1/design-options.md` と `docs/sprints/sprint-$1/options/`
+- 「本実装はしない。量の違う案を2〜3枚撮って、作業ツリーを着手前に戻して終える」こと
+
+終わったら案の画像をユーザーに見せ、`AskUserQuestion` で選んでもらう。答えを `design-options.md` と
+`status.md` に書き、フェーズを `案選択済み` にする。**選ぶ前に Phase A に進まない。**
+（契約に「見た目の案」節が無くても、ユーザーの指摘がこの種の直しなら、Planner に節の追記を頼んでからここを通す）
+
 **Phase A: 実装** — `@agent-generator` を起動する。渡すもの:
 - 契約: `docs/sprints/sprint-$1/contract.md`
 - 報告の書き出し先: `docs/sprints/sprint-$1/generator-report.md`
@@ -45,6 +55,7 @@ Sprint $1 の **次の1フェーズだけ**を実行してください。あな�
 
 **Phase B: デザイン** — `@agent-designer` を起動する。渡すもの:
 - `docs/sprints/sprint-$1/generator-report.md` を読むこと
+- `design-options.md` があれば、**選ばれた案をそのままの量で入れる**こと
 - 報告の書き出し先: `docs/sprints/sprint-$1/designer-report.md`
 
 **Phase C: 評価** — `@agent-evaluator` を起動する。渡すもの:
