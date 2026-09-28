@@ -72,6 +72,10 @@ Claude Code のセッション内で:
 /harness-init
 ```
 
+`/harness-init` は技術スタックを見分け、**実際に入っているスキルだけ**を役ごとに配線し（役ごとに1〜2本まで）、
+効きそうなスキルと MCP を3つまで提案します。サードパーティのスキルはこのリポジトリに同梱していません。
+入れる・認証する・鍵を渡すのはあなたの操作です。
+
 ### 方法B: ファイルをコピーする
 
 ```bash
@@ -121,7 +125,8 @@ Planner が `docs/spec.md` と `docs/sprints/sprint-N/contract.md` を生成し�
 /sprint 1
 ```
 
-**1回につき1フェーズだけ実行して停止します。** 実装 → デザイン → 評価と進めるには3回実行します。
+**1回につき1フェーズだけ実行して停止します。** 実装 → デザイン → 評価と進めるには3回実行します
+（見た目を詰める回は実装の前に「見た目の案」、スイートが育ったら評価の前に「フル回帰」が1回ずつ入ります）。
 
 各フェーズの結果を見てから次に進めるので、**途中で割り込んで別の指示を出せます。**
 不合格なら、次の `/sprint` 実行時に差し戻し先のエージェントへ自動的に戻ります（リトライ上限3回）。
@@ -142,13 +147,38 @@ Designer の記憶（`memory: project`）に残るので、**同じ指摘を毎�
 ### 4. リリース前に確認する
 
 ```
+/release-check early
+```
+
+ストアに出すアプリは、計画の承認の直後に1回。アイコンと起動画面が見本のままでないか、ソーシャルログインの設定、
+公開 URL、審査用アカウント、画面写真の寸法を**最初に名指します**（提出の前夜に見つかると間に合わないもの）。
+
+```
+/release-check device 12
+```
+
+ビルド12 を配布した後に。前のビルドからの契約の「手動検証項目」を集め、そのビルドの実機チェックリストを作ります。
+
+```
 /release-check 1.0.0
 ```
 
 Webテスト、Expo/React Nativeのネイティブ手動確認、App Store情報を分けて確認し、
 `docs/releases/release-readiness.md`へ記録します。アップロードや提出は行わず、必ず人間の承認前で止まります。
+**審査への提出はあなたの操作です。** ネイティブのビルドの決まり（まっさらな worktree から出す・一括検査・
+サーバーがクラウドに届いているか・送信後のタグ・費用の記録）は `docs/release-checklist.md` にあります。
 
-### 5. Codex・cc-companyへ引き継ぐ
+### 5. 実機の指摘を受ける
+
+```
+/feedback 12 「グループの＋が押しにくい」
+```
+
+原文を `status.md` に残し、答えが要る点を1度にまとめて聞き、Planner に「実機の指摘（ビルド12）」の回の契約を書かせます。
+提出の後でよいものは ID 付きの「送り」へ。スプリントの途中の追加の指摘は、契約への純粋な追記で受けます。
+**E2E の全緑は Web の全緑であって、実機の保証ではありません。**
+
+### 6. Codex・cc-companyへ引き継ぐ
 
 ```
 /handoff-codex 1
@@ -156,6 +186,13 @@ Webテスト、Expo/React Nativeのネイティブ手動確認、App Store情報
 
 Sprint 1の契約、実装、デザイン、評価、発信素材を
 `docs/handoffs/sprint-1-codex.md`へまとめます。Codexはこのファイルを読み、調査、記録、SNS投稿案へ再利用できます。
+
+### 長く回すとき
+
+スプリントが数十回に及ぶと、1回の評価に何時間もかかり、セッションは何度も途切れます。`CLAUDE.md` の
+「長く回すための決まり」に、止まらない仕組み（起こす仕掛け・並走・判断待ちで止まらない）、
+早める4つの手（評価の前に1回だけフル回帰など）、途切れた後の再開手順、ユーザーへの報告の書き方があります。
+方向の決定は `docs/product-direction.md`（決定の台帳 ・ 追記のみ）に積みます。
 
 ### 手動で呼ぶ場合
 
@@ -198,7 +235,8 @@ your-project/
 │   │   ├── plan.md                # /plan
 │   │   ├── sprint.md              # /sprint N
 │   │   ├── polish.md              # /polish N
-│   │   ├── release-check.md        # /release-check
+│   │   ├── feedback.md            # /feedback <ビルド番号>
+│   │   ├── release-check.md        # /release-check [early | device N | バージョン]
 │   │   ├── handoff-codex.md        # /handoff-codex N
 │   │   └── harness-init.md        # /harness-init
 │   └── hooks/
@@ -206,6 +244,7 @@ your-project/
 │       └── guard.test.mjs         # ガードの回帰テスト
 ├── docs/
 │   ├── spec.md                    # Planner が生成
+│   ├── product-direction.md       # 決定の台帳（V-n ・ 追記のみ）
 │   ├── runbook.md                 # 起動方法（Sprint 1 で Generator が実値を埋める）
 │   ├── release-checklist.md        # Windows・Expo・App Store提出前の共通確認
 │   ├── rubric.md                  # デザイン採点アンカー

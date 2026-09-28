@@ -16,7 +16,8 @@
                                           /polish → @agent-designer
                                           （ユーザーの手直し。任意）
                                                         ↓
-                                          /release-check（提出前確認）
+                                          /release-check（early ・ device N ・ 提出前確認）
+                                          /feedback（実機の指摘 → 次の回の契約）
                                           /handoff-codex（業務・発信用引継ぎ）
 ```
 
@@ -308,14 +309,16 @@ Evaluator を丸ごと回す必要はない。
 ├── CLAUDE.md
 ├── .claude/
 │   ├── agents/           # 4体のサブエージェント定義
-│   ├── commands/         # /plan, /sprint, /polish, /release-check, /handoff-codex, /harness-init
+│   ├── commands/         # /plan, /sprint, /polish, /feedback, /release-check, /handoff-codex, /harness-init
 │   └── hooks/
 │       ├── guard.mjs     # 役割境界の強制
 │       └── guard.test.mjs
 ├── docs/
 │   ├── spec.md                # Planner が生成
+│   ├── product-direction.md   # 決定の台帳（V-n ・ 追記のみ ・ Planner）
 │   ├── runbook.md             # 起動方法（Sprint 1 で Generator が実値を埋める）
-│   ├── release-checklist.md    # ネイティブ・App Store提出前の確認
+│   ├── release-checklist.md    # ネイティブ・App Store提出前の確認（早期の穴 ・ ビルドの決まり B1〜B10）
+│   ├── releases/              # /release-check の結果（early-check ・ device-checks-build-N ・ release-readiness）
 │   ├── rubric.md              # デザイン採点アンカー
 │   ├── design-tokens.css      # トークン正本
 │   ├── design-tokens.md       # トークン解説
