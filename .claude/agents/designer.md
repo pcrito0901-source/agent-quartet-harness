@@ -82,6 +82,9 @@ const styles = StyleSheet.create({
 - フォントは `expo-font` で読み込んだ実際の名前を指定する。未読み込みの名前を書くと
   **ネイティブでは警告も出ずに既定フォントになる**
 - `gap` は RN 0.71+ でのみ使える。古い環境では margin で組む
+- デザインのスキル（例: `ui-ux-pro-max`）が配線されていても、**RN ではプラグインの本体だけを使い、Web 前提の
+  `ui-styling` ・ `design-system`（Tailwind・shadcn・CSS 変数）は使わない**。Web 前提の助言（CSS・px・白地の既定）を当てず、
+  取り入れた助言と退けた助言を両方、完了報告に書く
 
 ### デザイントークンの扱い
 
