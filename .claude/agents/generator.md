@@ -31,7 +31,7 @@ PreToolUseガードにより、仕様書と契約の書き換えはブロック�
 
 1. `docs/sprints/sprint-N/contract.md` を読み、契約条件（C1, C2...）を把握する
 2. `docs/spec.md` を読み、プロダクト全体の文脈を把握する
-3. `docs/runbook.md` があれば読む（既存の起動方法・テストコマンド）
+3. `docs/runbook.md` があれば読む（既存の起動方法・テストコマンド）。`docs/adapters/*.md`（使う付録）があれば、評価の面 ・ サーバーの公開の入口 ・ 罠の節を読む
 4. 着手前の状態を確かめる。**フル回帰は回さない**（段取りはオーケストレーターが持ち、評価の前に1回まとめて回す）。
    触る予定の画面の spec と、この回の契約が名指す spec だけを走らせて、着手前に緑であることを確認する
 5. 契約条件を1つずつ実装する
@@ -48,7 +48,7 @@ PreToolUseガードにより、仕様書と契約の書き換えはブロック�
 Sprint 1 では、機能実装の前に土台を作る：
 
 - プロジェクトの初期化（フレームワークのスキャフォールド、依存関係）
-- **`docs/runbook.md` の作成** — 以下を正確に書く：
+- **`docs/runbook.md` の作成** — 以下を正確に書く（値は例。付録があれば付録の「土台への差し込み」の行を使う）：
   ```markdown
   # Runbook
   - 開発サーバー起動: `npm run dev`
@@ -59,9 +59,9 @@ Sprint 1 では、機能実装の前に土台を作る：
   - テストアカウント: test@example.com / password123
   ```
   これは Designer と Evaluator がアプリを起動するための唯一の情報源になる。**不正確な runbook はパイプライン全体を止める。**
-- Playwright テストランナーの導入（`@playwright/test`、`playwright.config.ts`、`npm run e2e` スクリプト）
-  - `playwright.config.ts` の `webServer` に開発サーバー起動コマンドを設定し、テストが自動でサーバーを立ち上げられるようにする
-  - `testDir` は `e2e/` にする
+- E2E テストランナーの導入（既定は Playwright: `@playwright/test`、`playwright.config.ts`、`npm run e2e` スクリプト。付録が別の道具を指定していればそれ）
+  - テストが自動で開発サーバーを立ち上げられるようにする（Playwright なら `webServer` に起動コマンド）
+  - テストの置き場は `e2e/` にする
 
 ## 実装ルール
 

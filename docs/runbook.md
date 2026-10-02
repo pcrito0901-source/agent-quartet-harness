@@ -3,82 +3,71 @@
 > **Sprint 1 の Generator がこのファイルを実際の値で埋めます。**
 > Designer と Evaluator がアプリを起動するための唯一の情報源です。
 > ここが不正確だと、Evaluator は Phase 0 で不合格を出してパイプラインが止まります。
+>
+> 使う付録（`docs/adapters/*.md`）がある場合は、その「土台への差し込み」節の行をここへ写してから実値で埋める。
+> 付録が無い技術なら、下の表をそのまま埋める。
 
 ## 起動
 
-### Web プロジェクトの場合
-
 | 項目 | 値 |
 |------|-----|
-| 依存関係のインストール | `npm install` |
-| 開発サーバー起動 | `npm run dev` |
-| ベースURL | `http://localhost:3000` |
-| 起動確認（PowerShell） | `(Invoke-WebRequest http://localhost:3000 -UseBasicParsing).StatusCode` |
-| 起動確認（bash） | `curl -sf http://localhost:3000 >/dev/null` |
-| ビルド | `npm run build` |
+| 評価の面 | （回帰の E2E が操作する面。例: ブラウザ ・ Web の束 ・ API ・ CLI。**本番の面と違うなら、その旨と限界を書く**） |
+| 依存関係のインストール | （例: `npm install`） |
+| 開発サーバー起動 | （例: `npm run dev`） |
+| ベースURL | （例: `http://localhost:3000`。実際のポートは起動ログを見て書き換える） |
+| 起動確認（PowerShell） | （例: `(Invoke-WebRequest http://localhost:3000 -UseBasicParsing).StatusCode`） |
+| 起動確認（bash） | （例: `curl -sf http://localhost:3000 >/dev/null`） |
+| ビルド | （例: `npm run build`） |
+| 本番の面での確認（手動） | （自動の面と違う場合。例: 実機で開発ビルドを開く） |
 
-### React Native / Expo の場合
+自動の面の合格は、本番の面の合格ではない。配布前は `/release-check` を実行し、
+プロジェクトで採用しているビルド・配布の方式のコマンドを下の表へ追記する。**採用していない方式のコマンドを推測で書かない。**
 
-**評価対象は Expo Web ビルド。** iOS シミュレータは macOS 専用のため、Windows 環境では
-ネイティブの自動E2Eができない。Playwright は `expo start --web` が出力する DOM を操作する。
+## 配布（ストア ・ テスター配布 ・ 本番への公開がある場合）
 
 | 項目 | 値 |
-|------|-----|
-| 依存関係のインストール | `npm install` |
-| 開発サーバー起動（評価用） | `npx expo start --web` |
-| ベースURL | `http://localhost:8081`（実際のポートは起動ログを見て書き換える） |
-| 実機確認（手動） | `npx expo start` → Expo Go でQRを読む |
-| 型チェック | `npx tsc --noEmit` |
-
-Expo Webの合格はiOSネイティブの合格ではない。配布前は`/release-check`を実行し、
-プロジェクトで採用しているクラウドビルドまたはmacOSビルド環境のコマンドをこの表へ追記する。
-EASを採用していないプロジェクトへ、EASコマンドを推測で追加しない。
-
-| ネイティブ配布 | 値 |
 |---|---|
-| ビルド方式 | （EAS Build / Xcode Cloud / GitHub Actions macOS / その他） |
+| ビルド方式 | （例: クラウドのビルドサービス ・ CI の macOS ・ 手元のビルド） |
+| ビルドの台本 | （**番号を引数に取る1本の台本**。例: `node scripts/release-build.mjs --build <n> --tree <木>` ・ `docs/release-checklist.md` の B11） |
 | 検証用ビルド | （実際のコマンド） |
-| TestFlight配布 | （実際のコマンドまたは手順。自動実行には承認が必要） |
-| ビルド元 | （まっさらな `git worktree` の作り方と片付け方。作業中のフォルダから出さない ・ `docs/release-checklist.md` の B1） |
+| テスター配布 | （実際のコマンドまたは手順。自動実行には承認が必要） |
+| ビルド元 | （まっさらな `git worktree` の作り方と片付け方。作業中のフォルダから出さない ・ B1） |
 | ビルドの前の一括検査 | （例: `npm run build:gate`。1段でも落ちたら出さない ・ B3） |
 | アーカイブのいつもの大きさ | （例: 約 300MB。桁が違えば止めて中身を見る ・ B2） |
-| 送信後のタグ | `git tag -a testflight/<n> <木> -m "sent YYYY-MM-DD"`（B6） |
+| 送信後のタグ | （例: `git tag -a release/<n> <木> -m "sent YYYY-MM-DD"` ・ B6） |
 | 月の枠 | （プランと上限。費用は `status.md` の「ビルドの台帳」へ ・ B7） |
 
-### サーバー（バックエンド）がある場合
+## サーバー（バックエンド）がある場合
 
-**E2E と実機が同じサーバーを見ているとは限らない。** ここに両方の向き先を書く。
+**E2E と実機・本番が同じサーバーを見ているとは限らない。** ここに両方の向き先を書く。
 
 | 項目 | 値 |
 |---|---|
 | E2E が見るサーバー | （例: ローカルの開発用デプロイメント） |
-| 実機が見るサーバー | （例: クラウドのデプロイメント。本番と同じに扱う） |
+| 実機・本番が見るサーバー | （例: クラウドのデプロイメント。区分が開発用でも、実機が見ているなら本番と同じに扱う） |
 | クラウドへの配備コマンド | （実際のコマンド。**毎回ユーザーの承認**） |
 | 最後に配備したコミット | （配備のたびに `status.md` に記録する。ビルドの前に `git diff <このコミット>..HEAD -- <サーバーのディレクトリ>` が空かを見る） |
 | ローカルのサーバーの起こし方と確かめ方 | （起動コマンド ・ ヘルスチェックの URL ・ 起動待ちの長さ ・ 対話の問いで止まるなら避け方） |
-
-`playwright.config.ts` の `webServer.command` に `npx expo start --web` を設定し、
-`url` をベースURLに合わせる。Metro の初回起動は時間がかかるため `timeout` は
-120000 以上にしておくこと。
+| 公開の入口の一覧の作り方 | （`/release-check` のセキュリティ点検で使う。付録に台本があればそのコマンド） |
 
 ## テスト
 
 | 項目 | 値 |
 |------|-----|
-| E2E（回帰スイート全件） | `npm run e2e` |
-| E2E（単一スプリント） | `npx playwright test e2e/sprint-1.spec.ts` |
-| ユニットテスト | `npm test` |
+| E2E（回帰スイート全件） | （例: `npm run e2e`） |
+| E2E（単一スプリント） | （例: `npx playwright test e2e/sprint-1.spec.ts`） |
+| ユニットテスト | （例: `npm test`） |
 
-`playwright.config.ts` の `webServer` に開発サーバーの起動コマンドを設定してあるため、
-`npm run e2e` はサーバーを自動で立ち上げます。
+テストが開発サーバーを自動で立ち上げるよう設定する（Playwright なら `playwright.config.ts` の `webServer`）。
+初回の起動が遅い道具なら、起動待ちを長めにする（例: 120000ms 以上）。
 
 ## テストデータ
 
 | 項目 | 値 |
 |------|-----|
-| 初期データ投入 | `npm run seed` |
-| データリセット | `npm run db:reset` |
-| テストアカウント | `test@example.com` / `password123` |
+| 初期データ投入 | （例: `npm run seed`） |
+| データリセット | （例: `npm run db:reset`） |
+| テストアカウント | （例: `test@example.com` / `password123`。**本番のアカウントを書かない**） |
 
 ## 環境変数
 
@@ -86,20 +75,21 @@ EASを採用していないプロジェクトへ、EASコマンドを推測で�
 
 | 変数 | 用途 | 必須 |
 |------|------|------|
-| `DATABASE_URL` | 接続先 | はい |
+| （例: `DATABASE_URL`） | 接続先 | はい |
 
 ## スキル（役ごと）
 
 `/harness-init` が、実際に入っているスキルだけをここに書く（役ごとに1〜2本まで・Planner は原則なし）。
 プラグイン方式では、オーケストレーターがサブエージェントを起動するときにこの表のスキル名をプロンプトで渡す。
+場面ごとの選び方は `harness-init.md` の 6、技術ごとの例は各付録の「スキルの例」。
 
-| 役 | スキル | 使わないもの・注意 |
-|---|---|---|
-| Generator | （例: `react-native-best-practices`） | |
-| Designer | （例: `ui-ux-pro-max` の本体） | （例: RN では `ui-styling` ・ `design-system` を使わない） |
-| Evaluator | （例: `react-native-best-practices`） | |
-| オーケストレーター | （例: 配備先ガード ・ `asc-*` の読み取り系） | 提出の族は使わない |
+| 役 | 場面 | スキル | 使わないもの・注意 |
+|---|---|---|---|
+| Generator | 実装 | （例: 技術のベストプラクティスのスキル） | |
+| Designer | UI の仕上げ | （例: デザインのスキルの本体） | （例: 本番の面に合わない Web 前提の部品） |
+| Evaluator | 評価 | （例: 技術のベストプラクティスのスキル） | |
+| オーケストレーター | 配備の前 ・ 提出の前の点検 ・ ストアの文 ・ ビルドと配布 | （例: 配備先ガード ・ コードのレビュー ・ 文章を整える ・ 配布） | 審査への提出は使わない |
 
 ## 既知のハマりどころ
 
-- （ポート衝突、初回ビルドの所要時間、要外部サービスなど、実際に踏んだものを Generator が追記する）
+- （ポート衝突、初回ビルドの所要時間、要外部サービスなど、実際に踏んだものを Generator が追記する。3つ以上たまったら付録に切り出す）

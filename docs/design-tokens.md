@@ -1,8 +1,11 @@
 # Design Tokens
 
-> **正本は [`design-tokens.css`](./design-tokens.css) です。**
+> **既定の正本は [`design-tokens.css`](./design-tokens.css) です。**
 > Designer はそちらを import して `var()` で参照します。
-> このファイルは人間向けの解説であり、値を変更する場合は **CSS 側を編集してください**。
+> このファイルは人間向けの解説であり、値を変更する場合は **正本の側を編集してください**。
+>
+> **本番の面で CSS 変数が効かない技術では、付録が別の形式の正本を渡す**
+> （例: `adapters/expo-react-native/design-tokens.ts` を `docs/design-tokens.ts` に写す）。キー名は CSS の変数名と対応している。
 
 ## なぜ CSS が正本なのか
 
