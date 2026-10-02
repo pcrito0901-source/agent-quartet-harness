@@ -1,5 +1,63 @@
 # Changelog
 
+## 2.6.0
+
+「特定のアプリに偏らず、まったく違う種類のアプリでも使える形に」を目標に、**土台（core）と技術ごとの付録（adapters）を分けた**。
+あわせて、提出の直前までの実運用（約70スプリント）で得た学びを、土台の言葉に直して入れた。
+
+### 土台と付録を分けた
+
+- `adapters/` を新設: [`web`](adapters/web/README.md)（最小）・ [`expo-react-native`](adapters/expo-react-native/README.md) ・ [`convex`](adapters/convex/README.md)。
+  付録の見出し（見分け方 ・ 評価の面 ・ 手動検証 ・ トークン ・ 公開の入口 ・ 配備 ・ 罠 ・ スキルの例 ・ 土台への差し込み）を [`adapters/README.md`](adapters/README.md) に決めた
+- 土台（`CLAUDE.md` ・ 4役 ・ 7コマンド ・ `docs/` の雛形）の決まりの本文から、特定の技術名とアプリ固有の語を外した。
+  「自動の面と本番の面」「サーバーの公開の入口」「配布のビルド」「ネイティブ限定の機能」のような一般の言い方にし、技術名は「例:」としてだけ残した
+- `CLAUDE.md` に「土台と付録」節と、`/harness-init` が書く「使う付録」節
+- **`/harness-init` に「技術の組み合わせを聞き、使う付録を配線する」段**: 見分ける → `AskUserQuestion` で1回だけ確かめる →
+  `docs/adapters/` へ写す → `CLAUDE.md` に配線 → 「土台への差し込み」を runbook へ。**付録の無い技術なら土台だけで動く**
+- 各役は着手の前に `docs/adapters/*.md` の自分の役の節を読む（planner の「評価の面の確認」・ designer の「付録の確認」・ evaluator の Phase 0.5）
+- `wiring.test.mjs` に、付録がそろうことと、土台に技術名とアプリ固有の語が戻らないことの検査を足した
+
+### 移したもの（どこへ移したか）
+
+| 移した中身（v2.5.0 の場所） | 移した先 |
+|---|---|
+| Expo Web で評価する理由と限界（`CLAUDE.md` のルール ・ `planner.md` の「プラットフォームの確認」・ `evaluator.md` の Phase 0.5 ・ `runbook.md` の「React Native / Expo の場合」） | `adapters/expo-react-native` の 2 ・ 3 ・ 11。土台には「自動の面と本番の面」の決まりとして残した |
+| `docs/design-tokens.ts` と RN 固有の注意（影 ・ lineHeight ・ expo-font ・ gap）（`designer.md`） | `adapters/expo-react-native/design-tokens.ts` と同 README の 4。土台には「本番の面で効く形式のトークン」として残した |
+| `ui-ux-pro-max` は本体だけ（`CLAUDE.md` ・ `designer.md` ・ `harness-init.md`） | `adapters/expo-react-native` の 4 ・ 10。土台には「本番の面で崩れる部品を使わない」として残した |
+| ネイティブのビルドの決まり B1〜B10 の EAS の具体（Windows の eas-cli と入れ子の `.gitignore` ・ `eas build:inspect` ・ `expo-doctor` ・ `testflight/<n>` のタグ ・ 費用）（`release-checklist.md` ・ `CLAUDE.md` ・ `runbook.md`） | `adapters/expo-react-native` の 6。土台は「配布のビルドの決まり」B1〜B11（タグの例は `release/<n>`） |
+| `app.json` ・ `eas.json` ・ TestFlight ・ App Store の名指し（`release-check.md` ・ `release-checklist.md`） | 土台は一般の言い方。App Store の具体は `adapters/expo-react-native` の 7 ・ 8 |
+| 技術ごとのスキルの対応表（`harness-init.md` の 5）・ `asc-*` ・ `convex-deploy-guard` ・ `react-native-best-practices` の名指し（`CLAUDE.md`） | 各付録の「スキルの例」。土台は「役と場面」の表（`harness-init.md` の 6 ・ `CLAUDE.md`） |
+| E2E と実機が別のサーバー ・ 同期で関数が消える ・ `=== null` の具体（`CLAUDE.md` ・ `feedback.md` の `convex/` の例） | `adapters/convex` の 2 ・ 3 ・ 7。土台には「サーバーが本番に届いているか」「欠けと空の両方を拾う」として残した |
+| `/feedback` ・ `CLAUDE.md` ・ `release-check.md` の例の語（「グループ」など） | 一般の語に置き換えた |
+
+### 足した学び（すべて土台の言葉 ・ 技術の具体は付録）
+
+1. **提出 ・ 公開の前のセキュリティ点検を `/release-check` の標準の段に**（通常モードの 3 と `security` モード）:
+   公開の入口をすべて列挙して「認証が要る ／ 開発用の関門の後ろ ／ 公開でよい」に仕分ける ・ 定期処理は内部の入口から ・
+   テスト用の入口が本番で開いていないか ・ レビュー用スキルは読むだけ。
+   実害: 提出の直前に、ログインなしで全利用者の個人的な記録が読める口が4つ見つかった。`adapters/convex` に列挙の台本 `list-public-functions.mjs`
+2. **機能と画面の入口の対応表**（通報 ・ ブロック ・ 自分の投稿やコメントの削除 ・ アカウント削除）: `/release-check` の 4 ・ early の E8 ・ planner。
+   実害: コメントの削除はサーバーにあったのに画面に入口が無かった
+3. **増え続けるデータを全部読まない**: generator の決まりと `/release-check` の 5 ・ release-checklist の S7。
+   実害: 予約の記録の全件読みで上限を越え、テストのデータ作りが全滅した
+4. **時刻 ・ 日付で結果が変わるテスト**: R 表の「時刻の型」・ 走らせる時間帯 ・ 時刻で落ちたものだけを取り直す ・ 月の境目 ・ 時計を差し替えられる作り。
+   実害: 未明のフル回帰で32本が時刻だけで落ちた ・ 月の1日に「昨日」が前の月を指した
+5. **待ち方（サブエージェント含む）**: 見張りは1つ ・ 時間切れで足し直さない ・ 完了の通知が来る形で。
+   実害: 評価役の見張りが10分ごとに積まれて30件になった
+6. **台本はコピーして書き換えない**（番号 ・ 対象を引数で受け取る1本）: `CLAUDE.md` ・ B11 ・ `adapters/expo-react-native/scripts/release-build.mjs`。
+   実害: 置換漏れで、前回のログを今回の結果として表示していた
+7. **凍結の基準を進めた後に製品が動いたら、基準を進め直す**: `/sprint` に「仕上げ（段E ・ 凍結の基準を使うプロジェクトだけ）」E-1〜E-6 を書き、1行で足した
+8. **外部サービスの管理画面の作業の分担表**（道具で書けるか ・ 担当 ・ 文字数の上限 ・ 記録が無いと更新できない ・ 外部テスターの前に開発用のログインを閉じる）:
+   `release-checklist.md`。App Store Connect の例は `adapters/expo-react-native` の 8
+9. **安全装置に止められた操作の渡し方**: 回り道をせず、ユーザーが打つ1行か、画面の手順と貼り付け用の文をすぐ渡す（`CLAUDE.md` の「外向きの操作」）
+10. **スキルの配線を「役と場面」の表に**: 提出前の点検 → コードのレビュー ・ ストアの文 → 文章を整える ・ ビルドと配布 → 配布（`harness-init.md` の 6 ・ `CLAUDE.md`）
+
+### その他
+
+- 役割境界の表のオーケストレーターに「（凍結を使うなら）凍結の基準のファイル」を足した
+- generator の完了報告に「公開の入口（足した ・ 変えた ・ 消した）」表
+- README に「土台と付録」と「新しいアプリで使うときの手順」
+
 ## 2.5.0
 
 1か月・67スプリント（Expo / React Native のアプリを TestFlight まで）の実運用で得た学びを入れた。

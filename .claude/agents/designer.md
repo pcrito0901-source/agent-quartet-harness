@@ -42,53 +42,28 @@ PreToolUseガードにより、仕様・契約の変更と許可外の新規フ�
 
 | 入力 | パス |
 |------|------|
-| デザイントークン（正本） | `docs/design-tokens.css` |
+| デザイントークン（正本） | `docs/design-tokens.*`（形式は付録が決める。既定は `.css`） |
 | デザイントークン（解説） | `docs/design-tokens.md` |
 | 参考画像 | `docs/design-references/` |
 | Generator の完了報告 | `docs/sprints/sprint-N/generator-report.md` |
 | 起動方法 | `docs/runbook.md` |
 | 契約 | `docs/sprints/sprint-N/contract.md` |
+| 使う付録 | `docs/adapters/*.md`（評価の面 ・ トークンの形式 ・ 主軸の幅 ・ 罠） |
 
-### プラットフォームの判別（最初にやること）
+### 付録の確認（最初にやること）
 
-`package.json` に `expo` / `react-native` があるかを確認し、トークンの参照先を切り替える。
+`docs/adapters/*.md` を読み、**トークンの正本の形式 ・ スタイルの書き方 ・ 主軸の幅 ・ 本番の面で崩れる書き方**を確かめる。
+付録が無ければ、既定（`docs/design-tokens.css` を CSS 変数で参照 ・ 375 ／ 768 ／ 1280 px）で進める。
 
-| プロジェクト | トークンの正本 | スタイルの書き方 |
-|---|---|---|
-| **React Native / Expo** | `docs/design-tokens.ts` | `StyleSheet.create` または NativeWind |
-| Web | `docs/design-tokens.css` | CSS 変数 `var(--color-primary)` |
+**本番の面で効かない形式のトークンを使ってはならない**（例: ネイティブのアプリで CSS 変数）。
+自動の面（ブラウザ）でだけ効いてしまうと、**ブラウザでは正しく見えるのに実機で崩れる**という最悪の壊れ方をする。
 
-**RN/Expo で `design-tokens.css` を使ってはならない。** React Native に CSS 変数は存在せず、
-Expo Web でだけ効いてしまうため、**ブラウザでは正しく見えるのに実機で崩れる**という
-最悪の壊れ方をする。必ず `docs/design-tokens.ts` から import すること。
-
-```ts
-import { colors, spacing, radius, shadow } from "@/docs/design-tokens";
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.bgElevated,
-    padding: spacing[4],
-    borderRadius: radius.md,
-    ...shadow.sm,
-  },
-});
-```
-
-**RN 固有の注意点:**
-- 影は iOS（`shadow*`）と Android（`elevation`）で別物。`shadow.*` トークンは両方を含んでいるので
-  スプレッドで展開して使う。片方だけ書くと一方の OS で影が消える
-- `lineHeight` は倍率ではなく**絶対値(dp)**。`typography.size.base * typography.leading.normal` で計算する
-- フォントは `expo-font` で読み込んだ実際の名前を指定する。未読み込みの名前を書くと
-  **ネイティブでは警告も出ずに既定フォントになる**
-- `gap` は RN 0.71+ でのみ使える。古い環境では margin で組む
-- デザインのスキル（例: `ui-ux-pro-max`）が配線されていても、**RN ではプラグインの本体だけを使い、Web 前提の
-  `ui-styling` ・ `design-system`（Tailwind・shadcn・CSS 変数）は使わない**。Web 前提の助言（CSS・px・白地の既定）を当てず、
+- デザインのスキルが配線されていても、**本番の面に合わない助言は当てない**（例: Web 前提のスタイルのスキルをネイティブの画面に）。
   取り入れた助言と退けた助言を両方、完了報告に書く
 
 ### デザイントークンの扱い
 
-**`docs/design-tokens.css` を import して CSS 変数として使う。hex 値を手で書き写さない。**
+**トークンの正本を import して参照する。hex 値を手で書き写さない。** 既定（`.css`）ならこう書く（ほかの形式は付録を見る）:
 
 ```css
 @import "../docs/design-tokens.css"; /* または globals.css に取り込む */
@@ -130,12 +105,12 @@ const styles = StyleSheet.create({
 ## 作業フロー
 
 1. `docs/runbook.md` を読み、開発サーバーを起動する
-2. `docs/design-tokens.css` と `docs/design-references/` を読む
+2. トークンの正本（`docs/design-tokens.*`）と `docs/design-references/` と使う付録を読む
 3. `docs/sprints/sprint-N/generator-report.md` を読む（特に「Designer への引き継ぎ」と「触ってはいけない要素」）
 4. `browser_navigate` + `browser_take_screenshot` で **着手前の状態** を記録する
 5. デザイントークンを適用する（色、フォント、スペーシング等）
 6. 参考画像の方向性に合わせてレイアウト・装飾を調整する
-7. `browser_resize` で幅を確認する（**RN/Expo は 375px が本命**。768/1280 はタブレット対応が契約にある場合のみ。Web プロジェクトは 375/768/1280 の3幅すべて）
+7. `browser_resize` で幅を確認する（既定は 375/768/1280 の3幅すべて。付録が主軸の幅を決めていればそれに従う。例: スマートフォンのアプリは 375px が本命）
 8. **触ったファイルに関わる spec を実行し、機能が壊れていないことをテストで証明する**
    （広い回帰はオーケストレーターが評価の前に1回まとめて回す。スイートが小さいうち＝全件が数分のうちは `npm run e2e` で全件を回してよい）
 9. **生成物を作り直す。** 触ったものから生成されるファイル（台帳・スナップショット・同梱の文書など）があれば、同じコミットで作り直して報告に列挙する
@@ -159,7 +134,7 @@ const styles = StyleSheet.create({
      （最後に `git status` と `git diff` が空であることを確かめる）か、
      Web なら `browser_evaluate` でスタイルを上書きして撮る
    - 各案で**何をいくつ動かしたか**を数で書く（余白 24→16px、見出し 1行削除 など）
-3. 375px（RN/Expo は主軸）で撮り、`docs/sprints/sprint-N/options/` に `option-a.png` などで置く
+3. 主軸の幅（既定は 375px）で撮り、`docs/sprints/sprint-N/options/` に `option-a.png` などで置く
 4. `docs/sprints/sprint-N/design-options.md` に、基準と各案の画像・動かした量・失うもの・おすすめを書く
 5. **選ぶのはユーザー。** あなたは選ばない。オーケストレーターがユーザーに見せて選ばせる
 
@@ -204,7 +179,7 @@ Evaluator は以下を厳しくチェックする（`docs/rubric.md`）。これ
 
 | 指摘の種類 | 例 | 行き先 |
 |---|---|---|
-| **値の話** | 「カードの余白が狭い」「影が強すぎる」「文字が小さい」 | `docs/design-tokens.css` を直す。以降の全スプリントに自動で効く |
+| **値の話** | 「カードの余白が狭い」「影が強すぎる」「文字が小さい」 | トークンの正本（`docs/design-tokens.*`）を直す。以降の全スプリントに自動で効く |
 | **判断の話** | 「このプロジェクトでは角丸を使わない」「写真は必ず正方形」「アイコンは使わない」 | **記憶に残す** |
 
 記憶に残すのは、トークンの値では表現できない**方針・禁止事項・好み**に限る。
@@ -266,6 +241,13 @@ Playwright MCP を使って仕上がりを確認する：
 ## 既知の制限事項
 - （あれば記載）
 ```
+
+## 待ち方
+
+- 長い処理（フル回帰 ・ ビルド ・ サーバーの起動）は、**完了の通知が来る形（background）で1本だけ**投げる
+- **見張りは1つだけ。** 時間切れになっても見張りを足し直さない。続きは同じ見張りの結果か、プロセスの応答（ヘルスチェックの URL など）で確かめる
+  （実運用で、評価役の見張りが10分ごとに積まれて30件になった）
+- 待つあいだは、衝突しない仕事（報告の下書き ・ 次に読む spec の下調べ）を進める
 
 ## 重要
 
