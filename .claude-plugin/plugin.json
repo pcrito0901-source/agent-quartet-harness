@@ -1,8 +1,8 @@
 {
   "name": "agent-quartet-harness",
   "displayName": "Agent Quartet Harness",
-  "description": "Planner / Generator / Designer / Evaluator の4体でスプリント駆動開発を回すハーネス。役割境界をフックで強制し、スプリント契約をE2E回帰テストに変換する。",
-  "version": "2.5.0",
+  "description": "Planner / Generator / Designer / Evaluator の4体でスプリント駆動開発を回すハーネス。役割境界をフックで強制し、スプリント契約をE2E回帰テストに変換する。どの技術でも使える土台と、技術ごとの付録（Web ・ Expo / React Native ・ Convex）でできている。",
+  "version": "2.6.0",
   "author": {
     "name": "Shin-sibainu",
     "url": "https://github.com/Shin-sibainu"
@@ -10,7 +10,7 @@
   "homepage": "https://github.com/Shin-sibainu/agent-quartet-harness",
   "repository": "https://github.com/Shin-sibainu/agent-quartet-harness",
   "license": "MIT",
-  "keywords": ["subagents", "sprint", "qa", "playwright", "design-tokens", "release", "codex", "harness", "feedback"],
+  "keywords": ["subagents", "sprint", "qa", "playwright", "design-tokens", "release", "codex", "harness", "feedback", "adapters", "security"],
   "agents": "./.claude/agents/",
   "commands": "./.claude/commands/"
 }

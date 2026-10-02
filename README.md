@@ -1,6 +1,7 @@
 # Agent Quartet Harness
 
 Claude Code のサブエージェント4体によるスプリント駆動開発ハーネス。
+**どんな種類のアプリにも使える土台**と、**技術ごとの付録**（Web ・ Expo / React Native ・ Convex）でできています。
 
 ```
 /plan → @agent-planner
@@ -10,6 +11,34 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
                    └────── 不合格時のフィードバック ──────┘
                               （リトライ上限3回）
 ```
+
+## 土台と付録
+
+| 層 | 置き場所 | 中身 |
+|---|---|---|
+| **土台** | `CLAUDE.md` ・ `.claude/agents/` ・ `.claude/commands/` ・ `docs/` の雛形 | どの技術でも同じに使える決まり（何を守るか） |
+| **付録** | [`adapters/`](adapters/README.md) | 技術ごとの「どうやって」（どの面で評価するか ・ 何が手動検証になるか ・ どう配る ・ どこに罠があるか） |
+
+| 付録 | 使うとき |
+|---|---|
+| [`web`](adapters/web/README.md) | ブラウザで動くアプリ（土台がそのまま回ることを示す最小の付録） |
+| [`expo-react-native`](adapters/expo-react-native/README.md) | Expo / React Native で作り、EAS でビルドして TestFlight ・ App Store に出すアプリ |
+| [`convex`](adapters/convex/README.md) | サーバーが Convex のアプリ |
+
+組み合わせて使えます（例: `expo-react-native` ＋ `convex`）。**付録の無い技術（例: Flutter ＋ Supabase ・ CLI ・ API だけのサービス）でも、土台だけで動きます。**
+`/harness-init` が技術の組み合わせを聞き、使う付録を `docs/adapters/` に写して `CLAUDE.md` に配線します。
+
+### 新しいアプリで使うときの手順
+
+1. ハーネスを入れる（下の「セットアップ」）
+2. `/harness-init` —— 技術の組み合わせを聞かれるので答える。使う付録が `docs/adapters/` に写り、`CLAUDE.md` の「使う付録」に載る。
+   入っているスキルだけが、役と場面ごとに配線される
+3. `/plan 作りたいものを1〜4行で` —— `docs/spec.md` の「確認事項」に答えて承認する
+4. ストアに出す・一般に公開するなら `/release-check early`
+5. `/sprint 1` を繰り返す（1回で1フェーズ）
+6. 外部のテスターに配る前と、提出 ・ 公開の前に `/release-check security` と `/release-check <版>`
+7. 付録の無い技術で踏んだ罠は `docs/runbook.md` の「既知のハマりどころ」に貯め、3つ以上たまったら
+   [`adapters/README.md`](adapters/README.md) の見出しで付録に切り出す
 
 ## 4つのエージェント
 
@@ -160,23 +189,33 @@ Designer の記憶（`memory: project`）に残るので、**同じ指摘を毎�
 ビルド12 を配布した後に。前のビルドからの契約の「手動検証項目」を集め、そのビルドの実機チェックリストを作ります。
 
 ```
+/release-check security
+```
+
+外部のテスターに配る前と、公開の入口を足した回の後に。サーバーの公開の入口をすべて列挙して
+「認証が要る ／ 開発用の関門の後ろ ／ 公開でよい」に仕分け、定期処理が内部の入口から呼ばれているか、
+テスト用の入口が本番で開いていないか、機能（通報 ・ ブロック ・ 削除 ・ アカウント削除）に画面の入口があるか、
+増え続けるデータを全件読んでいないかを**読むだけで**確かめます（提出の直前に、ログインなしで全利用者の記録が読める口が4つ見つかった実害から）。
+
+```
 /release-check 1.0.0
 ```
 
-Webテスト、Expo/React Nativeのネイティブ手動確認、App Store情報を分けて確認し、
+自動の面の検証、上の点検、本番の面（実機）の手動確認、ストアの情報を分けて確認し、
 `docs/releases/release-readiness.md`へ記録します。アップロードや提出は行わず、必ず人間の承認前で止まります。
-**審査への提出はあなたの操作です。** ネイティブのビルドの決まり（まっさらな worktree から出す・一括検査・
-サーバーがクラウドに届いているか・送信後のタグ・費用の記録）は `docs/release-checklist.md` にあります。
+**審査への提出はあなたの操作です。** 配布のビルドの決まり（まっさらな worktree から出す・一括検査・
+サーバーが本番に届いているか・番号を引数に取る1本の台本・送信後のタグ・費用の記録）と、
+外部サービスの管理画面の作業の分担表は `docs/release-checklist.md` にあります。
 
 ### 5. 実機の指摘を受ける
 
 ```
-/feedback 12 「グループの＋が押しにくい」
+/feedback 12 「一覧の＋が押しにくい」
 ```
 
 原文を `status.md` に残し、答えが要る点を1度にまとめて聞き、Planner に「実機の指摘（ビルド12）」の回の契約を書かせます。
 提出の後でよいものは ID 付きの「送り」へ。スプリントの途中の追加の指摘は、契約への純粋な追記で受けます。
-**E2E の全緑は Web の全緑であって、実機の保証ではありません。**
+**E2E の全緑は自動の面の全緑であって、実機の保証ではありません。**
 
 ### 6. Codex・cc-companyへ引き継ぐ
 
@@ -190,8 +229,9 @@ Sprint 1の契約、実装、デザイン、評価、発信素材を
 ### 長く回すとき
 
 スプリントが数十回に及ぶと、1回の評価に何時間もかかり、セッションは何度も途切れます。`CLAUDE.md` の
-「長く回すための決まり」に、止まらない仕組み（起こす仕掛け・並走・判断待ちで止まらない）、
-早める4つの手（評価の前に1回だけフル回帰など）、途切れた後の再開手順、ユーザーへの報告の書き方があります。
+「長く回すための決まり」に、止まらない仕組み（起こす仕掛け・見張りは1つ・並走・判断待ちで止まらない）、
+早める4つの手（評価の前に1回だけフル回帰など）、時刻で結果が変わるテストの扱い、途切れた後の再開手順、ユーザーへの報告の書き方があります。
+本番の設定や外部への書き込みが安全装置に止められたときの渡し方は「外向きの操作」にあります。
 方向の決定は `docs/product-direction.md`（決定の台帳 ・ 追記のみ）に積みます。
 
 ### 手動で呼ぶ場合
@@ -216,8 +256,8 @@ Sprint 1の契約、実装、デザイン、評価、発信素材を
 ### 任意（デザイン品質に効く）
 
 - デザイントークンを自分のプロダクトの色・フォントに差し替える
-  - **Web プロジェクト** → `docs/design-tokens.css`（CSS変数）
-  - **React Native / Expo** → `docs/design-tokens.ts`（RN に CSS 変数は無い。`.css` を使うと Expo Web でだけ効いて**実機で崩れる**）
+  - 既定 → `docs/design-tokens.css`（CSS変数）
+  - 本番の面で CSS 変数が効かない技術 → 付録が渡す形式（例: Expo / React Native は `adapters/expo-react-native/design-tokens.ts` を `docs/design-tokens.ts` に写す。`.css` を使うと Web でだけ効いて**実機で崩れる**）
 - `docs/design-references/` に参考画像を置く（トーンの方向づけに使われます）
 
 ## ファイル構成
@@ -236,19 +276,21 @@ your-project/
 │   │   ├── sprint.md              # /sprint N
 │   │   ├── polish.md              # /polish N
 │   │   ├── feedback.md            # /feedback <ビルド番号>
-│   │   ├── release-check.md        # /release-check [early | device N | バージョン]
+│   │   ├── release-check.md        # /release-check [early | device N | security | バージョン]
 │   │   ├── handoff-codex.md        # /handoff-codex N
 │   │   └── harness-init.md        # /harness-init
 │   └── hooks/
 │       ├── guard.mjs              # 役割境界の強制
-│       └── guard.test.mjs         # ガードの回帰テスト
+│       ├── guard.test.mjs         # ガードの回帰テスト
+│       └── wiring.test.mjs        # 配線 ・ 版 ・ 付録 ・ 土台の語の検査
 ├── docs/
+│   ├── adapters/                  # 使う付録（/harness-init がハーネスの adapters/ から写す）
 │   ├── spec.md                    # Planner が生成
 │   ├── product-direction.md       # 決定の台帳（V-n ・ 追記のみ）
 │   ├── runbook.md                 # 起動方法（Sprint 1 で Generator が実値を埋める）
-│   ├── release-checklist.md        # Windows・Expo・App Store提出前の共通確認
+│   ├── release-checklist.md        # 提出・公開の前の確認（早期の穴 ・ 点検 ・ 配布のビルドの決まり ・ 管理画面の分担）
 │   ├── rubric.md                  # デザイン採点アンカー
-│   ├── design-tokens.css          # トークン正本
+│   ├── design-tokens.css          # トークン正本（既定。形式は付録が決める）
 │   ├── design-tokens.md           # トークン解説
 │   ├── design-references/         # 参考画像（ユーザーが用意）
 │   └── sprints/
