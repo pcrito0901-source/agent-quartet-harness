@@ -46,3 +46,51 @@ test("README のファイル構成が載せるコマンドは実在する", () =
     assert.ok(existsSync(path.join(ROOT, ".claude", "commands", `${name}.md`)), `${name}.md が無い`);
   }
 });
+
+test("付録（adapters）がそろい、必ず置く見出しを持つ", () => {
+  assert.ok(existsSync(path.join(ROOT, "adapters", "README.md")), "adapters/README.md が無い");
+  for (const name of ["web", "expo-react-native", "convex"]) {
+    const file = path.join(ROOT, "adapters", name, "README.md");
+    assert.ok(existsSync(file), `adapters/${name}/README.md が無い`);
+    const content = readFileSync(file, "utf8");
+    for (const heading of ["見分け方", "スキルの例", "土台への差し込み"]) {
+      assert.match(content, new RegExp(`^#+ .*${heading}`, "m"), `adapters/${name}: 見出し「${heading}」が無い`);
+    }
+  }
+  assert.ok(existsSync(path.join(ROOT, "adapters", "expo-react-native", "design-tokens.ts")));
+  assert.ok(existsSync(path.join(ROOT, "adapters", "expo-react-native", "scripts", "release-build.mjs")));
+  assert.ok(existsSync(path.join(ROOT, "adapters", "convex", "list-public-functions.mjs")));
+});
+
+// 土台（決まりの本文）に、特定の技術名とアプリ固有の語を戻さない。
+// 技術名は「例」の行か、付録（adapters/）を指す行にだけ置いてよい。
+// /harness-init は付録を選ぶコマンドなので、技術名の検査から外す（アプリ固有の語は検査する）。
+const CORE = [
+  "CLAUDE.md",
+  ...AGENTS.map((r) => `.claude/agents/${r}.md`),
+  ...["plan", "sprint", "polish", "feedback", "release-check", "handoff-codex", "harness-init"].map((c) => `.claude/commands/${c}.md`),
+  "docs/runbook.md",
+  "docs/release-checklist.md",
+  "docs/rubric.md",
+  "docs/design-tokens.md",
+  "docs/product-direction.md",
+  "docs/sprints/status.md",
+];
+const APP_WORDS = /PawNow|befitting|お題|ペット|グループ/;
+const TECH_WORDS = /Expo|React Native|\bRN\b|Convex|\bEAS\b|TestFlight|RevenueCat|PostHog|App Store Connect|app\.json|eas\.json|asc-/;
+const lines = (rel) => readFileSync(path.join(ROOT, rel), "utf8").split(/\r?\n/);
+
+test("土台の本文にアプリ固有の語が無い", () => {
+  for (const rel of CORE) {
+    lines(rel).forEach((line, i) => assert.ok(!APP_WORDS.test(line), `${rel}:${i + 1} にアプリ固有の語: ${line.trim()}`));
+  }
+});
+
+test("土台の本文の技術名は「例」か付録を指す行にだけある", () => {
+  for (const rel of CORE.filter((r) => !r.endsWith("harness-init.md"))) {
+    lines(rel).forEach((line, i) => {
+      if (!TECH_WORDS.test(line)) return;
+      assert.ok(/例|adapters\//.test(line), `${rel}:${i + 1} に技術名（例でも付録でもない）: ${line.trim()}`);
+    });
+  }
+});
