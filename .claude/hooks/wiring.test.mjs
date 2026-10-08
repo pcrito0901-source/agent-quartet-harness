@@ -59,6 +59,18 @@ test("見本の段が計画と実装のあいだに配線されている", () =>
   assert.match(read(".claude/agents/evaluator.md"), /両方向/, "evaluator.md が見本との差を両方向で数えていない");
 });
 
+// 実運用の学び（v2.8.0）: 作る前の需要 ・ 課金と計測は「届いたか」まで ・ 数字は数え直す。
+test("作る前と公開の前の学びが配線されている", () => {
+  const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
+  assert.match(read(".claude/agents/planner.md"), /^## 需要の根拠/m, "planner.md の spec の雛形に「需要の根拠」が無い");
+  assert.match(read(".claude/commands/plan.md"), /需要/, "plan.md が起動の前に需要を聞いていない");
+  const checklist = read("docs/release-checklist.md");
+  assert.match(checklist, /サーバーに購入の記録/, "release-checklist.md が購入をサーバーの記録まで見ていない");
+  assert.match(checklist, /分析の画面/, "release-checklist.md が計測の届きを見ていない");
+  assert.match(read(".claude/commands/release-check.md"), /^\| E11 /m, "release-check.md の early に計測の行（E11）が無い");
+  assert.match(read("CLAUDE.md"), /別の数え方で確かめてから/, "CLAUDE.md に「数字は別の数え方で確かめる」が無い");
+});
+
 test("付録（adapters）がそろい、必ず置く見出しを持つ", () => {
   assert.ok(existsSync(path.join(ROOT, "adapters", "README.md")), "adapters/README.md が無い");
   for (const name of ["web", "expo-react-native", "convex"]) {
