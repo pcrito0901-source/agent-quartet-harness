@@ -42,9 +42,21 @@ test("README のファイル構成が載せるコマンドは実在する", () =
   for (const name of listed) {
     assert.ok(existsSync(path.join(ROOT, ".claude", "commands", `${name}.md`)), `README: ${name}.md が無い`);
   }
-  for (const name of ["plan", "sprint", "polish", "feedback", "release-check", "handoff-codex", "harness-init"]) {
+  for (const name of ["plan", "design", "sprint", "polish", "feedback", "release-check", "handoff-codex", "harness-init"]) {
     assert.ok(existsSync(path.join(ROOT, ".claude", "commands", `${name}.md`)), `${name}.md が無い`);
   }
+});
+
+// 見本の段（v2.7.0）: 画面の形を実装の前に見本で決める流れが、どこかの直しで外れないように見張る。
+test("見本の段が計画と実装のあいだに配線されている", () => {
+  const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
+  assert.ok(existsSync(path.join(ROOT, "docs", "design-references", "INDEX.md")), "目録の雛形 docs/design-references/INDEX.md が無い");
+  assert.match(read(".claude/commands/plan.md"), /\/design/, "plan.md が承認の後に /design を案内していない");
+  assert.match(read(".claude/commands/sprint.md"), /見本: 承認済み/, "sprint.md が見本の承認を事前確認していない");
+  assert.match(read(".claude/commands/design.md"), /INDEX\.md/, "design.md が目録に触れていない");
+  assert.match(read(".claude/agents/planner.md"), /^## 画面一覧/m, "planner.md の spec の雛形に「画面一覧」が無い");
+  assert.match(read(".claude/agents/designer.md"), /^## 見本モード/m, "designer.md に「見本モード」の節が無い");
+  assert.match(read(".claude/agents/evaluator.md"), /両方向/, "evaluator.md が見本との差を両方向で数えていない");
 });
 
 test("付録（adapters）がそろい、必ず置く見出しを持つ", () => {
@@ -68,7 +80,7 @@ test("付録（adapters）がそろい、必ず置く見出しを持つ", () => 
 const CORE = [
   "CLAUDE.md",
   ...AGENTS.map((r) => `.claude/agents/${r}.md`),
-  ...["plan", "sprint", "polish", "feedback", "release-check", "handoff-codex", "harness-init"].map((c) => `.claude/commands/${c}.md`),
+  ...["plan", "design", "sprint", "polish", "feedback", "release-check", "handoff-codex", "harness-init"].map((c) => `.claude/commands/${c}.md`),
   "docs/runbook.md",
   "docs/release-checklist.md",
   "docs/rubric.md",

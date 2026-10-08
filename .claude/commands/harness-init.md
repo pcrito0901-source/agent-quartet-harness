@@ -15,7 +15,7 @@ description: ハーネスの動作に必要なファイルをプロジェクト�
 | `docs/rubric.md` | 採点アンカー | ハーネスのテンプレートをコピー |
 | `docs/runbook.md` | 起動方法 | テンプレートを置く（Sprint 1 で Generator が実値を埋める） |
 | `docs/sprints/status.md` | 進捗状態 | テンプレートを置く |
-| `docs/design-references/` | 参考画像置き場 | 空ディレクトリを作る |
+| `docs/design-references/` | 見本と目録（`/design` が作る）・ 方向づけの参考画像 | ハーネスの `docs/design-references/INDEX.md`（目録の雛形）をコピーする |
 | `docs/adapters/` | 使う付録 | 2 で写す（付録が無ければ作らない） |
 
 ## 2. 技術の組み合わせを聞き、使う付録を配線する
