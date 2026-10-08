@@ -6,11 +6,16 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 ```
 /plan → @agent-planner
           ↓
+/design → @agent-designer（見本モード）→ あなたが全画面の見本を承認
+          ↓
 /sprint N → @agent-generator → @agent-designer → @agent-evaluator
                    ↑                                    │
                    └────── 不合格時のフィードバック ──────┘
                               （リトライ上限3回）
 ```
+
+**画面の形は実装の前に、見本（絵）で決め切ります。** 実運用で、見本が実装の後に届いて変わったため、
+約76回のスプリントのうち約28回が「動いている画面の作り直し」になりました。見本なら1枚数分で直せます。
 
 ## 土台と付録
 
@@ -34,10 +39,11 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 2. `/harness-init` —— 技術の組み合わせを聞かれるので答える。使う付録が `docs/adapters/` に写り、`CLAUDE.md` の「使う付録」に載る。
    入っているスキルだけが、役と場面ごとに配線される
 3. `/plan 作りたいものを1〜4行で` —— `docs/spec.md` の「確認事項」に答えて承認する
-4. ストアに出す・一般に公開するなら `/release-check early`
-5. `/sprint 1` を繰り返す（1回で1フェーズ）
-6. 外部のテスターに配る前と、提出 ・ 公開の前に `/release-check security` と `/release-check <版>`
-7. 付録の無い技術で踏んだ罠は `docs/runbook.md` の「既知のハマりどころ」に貯め、3つ以上たまったら
+4. **画面のあるアプリなら `/design`** —— 全画面の見本（端の状態も含む）が作られるので、見て直してもらい、承認する
+5. ストアに出す・一般に公開するなら `/release-check early`
+6. `/sprint 1` を繰り返す（1回で1フェーズ）
+7. 外部のテスターに配る前と、提出 ・ 公開の前に `/release-check security` と `/release-check <版>`
+8. 付録の無い技術で踏んだ罠は `docs/runbook.md` の「既知のハマりどころ」に貯め、3つ以上たまったら
    [`adapters/README.md`](adapters/README.md) の見出しで付録に切り出す
 
 ## 4つのエージェント
@@ -46,7 +52,7 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 |---|---|---|
 | **@agent-planner** | 短いプロンプトから仕様書とスプリント契約を生成 | `docs/` のみ |
 | **@agent-generator** | 契約に基づいてコードを実装 | 仕様・契約以外の全体 |
-| **@agent-designer** | トークンと参考画像でUIを仕上げ | 全体（新規作成はスタイル/アセットのみ） |
+| **@agent-designer** | 実装の前に全画面の見本を作り、実装後はトークンと承認済みの見本でUIを仕上げ | 全体（新規作成はスタイル/アセット/ドキュメントのみ） |
 | **@agent-evaluator** | 契約をE2Eテストに変換して実行・合否判定 | `docs/`, `e2e/`, `tests/` のみ |
 
 ## このハーネスの3つの仕掛け
@@ -147,6 +153,21 @@ node --test ".claude/hooks/*.test.mjs"
 
 Planner が `docs/spec.md` と `docs/sprints/sprint-N/contract.md` を生成します。
 **`spec.md` の「確認事項」節（Planner が推測で埋めた前提）を確認してから次に進んでください。**
+`spec.md` には「画面一覧」（画面ID ・ 役割 ・ 端の状態）も入ります。
+
+### 1.5 見本を決める（画面のあるアプリ）
+
+```
+/design
+```
+
+Designer が「画面一覧」の画面ごとに見本を作り、`docs/design-references/` と目録 `INDEX.md` に置きます。
+見本には**端の状態**（空 ・ 長い文字 ・ 多い件数 ・ 失敗）も描かれます。あなたが見て、直してほしい画面があれば言い、承認します。
+
+- **承認した見本が正本になり**、Generator は骨格を、Designer は見た目を、Evaluator は差を、それに合わせて見ます
+- 承認の前に `/sprint 1` は始まりません。目録に無い画面を作る回の前にも `/design <画面ID>` が入ります
+- 承認の後に見本を変えるのは「決定」です。変わる画面だけ見本を差し替えてから、作り直しの回を立てます
+- 見本はスプリントではありません（コードもテストも作らない）。デザインのツールがあれば使い（例: Claude Design ・ Figma）、無ければ HTML で組んで撮ります
 
 ### 2. スプリントを回す
 
@@ -258,7 +279,8 @@ Sprint 1の契約、実装、デザイン、評価、発信素材を
 - デザイントークンを自分のプロダクトの色・フォントに差し替える
   - 既定 → `docs/design-tokens.css`（CSS変数）
   - 本番の面で CSS 変数が効かない技術 → 付録が渡す形式（例: Expo / React Native は `adapters/expo-react-native/design-tokens.ts` を `docs/design-tokens.ts` に写す。`.css` を使うと Web でだけ効いて**実機で崩れる**）
-- `docs/design-references/` に参考画像を置く（トーンの方向づけに使われます）
+- `/design` の前に、`docs/design-references/` に方向づけの参考画像（好きなアプリの画面など）を置く。
+  見本を作るときのトーンの手がかりになります（目録に載らない画像は、そのまま再現されません）
 
 ## ファイル構成
 
@@ -273,6 +295,7 @@ your-project/
 │   │   └── evaluator.md
 │   ├── commands/
 │   │   ├── plan.md                # /plan
+│   │   ├── design.md              # /design [画面ID …]
 │   │   ├── sprint.md              # /sprint N
 │   │   ├── polish.md              # /polish N
 │   │   ├── feedback.md            # /feedback <ビルド番号>
@@ -292,7 +315,7 @@ your-project/
 │   ├── rubric.md                  # デザイン採点アンカー
 │   ├── design-tokens.css          # トークン正本（既定。形式は付録が決める）
 │   ├── design-tokens.md           # トークン解説
-│   ├── design-references/         # 参考画像（ユーザーが用意）
+│   ├── design-references/         # 見本（/design が作り、あなたが承認した正本）・ 目録 INDEX.md ・ 方向づけの参考画像
 │   └── sprints/
 │       ├── status.md              # 進捗状態
 │       └── sprint-1/
