@@ -91,6 +91,16 @@ test("1週間の進め方が配線され、通常に戻せる", () => {
   assert.match(read(".claude/commands/harness-init.md"), /pace-one-week\.md/, "harness-init.md が pace-one-week.md を写していない");
 });
 
+// 見た目の方向（v2.10.0）: 見本の前に方向を聞き、iOS の半透明は付録に作り方と確かめ方を置く。
+test("見た目の方向と iOS の半透明が配線されている", () => {
+  const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
+  assert.match(read(".claude/commands/design.md"), /^### 0\. 見た目の方向を1回聞く/m, "design.md が見本の前に方向を聞いていない");
+  const rn = read("adapters/expo-react-native/README.md");
+  assert.match(rn, /^### iOS の半透明/m, "付録 expo-react-native に「iOS の半透明」の節が無い");
+  assert.match(rn, /isGlassEffectAPIAvailable/, "付録が API の在りか（beta で落ちる）を確かめていない");
+  assert.match(rn, /isReduceTransparencyEnabled/, "付録が「透明度を下げる」を確かめていない");
+});
+
 test("付録（adapters）がそろい、必ず置く見出しを持つ", () => {
   assert.ok(existsSync(path.join(ROOT, "adapters", "README.md")), "adapters/README.md が無い");
   for (const name of ["web", "expo-react-native", "convex"]) {
