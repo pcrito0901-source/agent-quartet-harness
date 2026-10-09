@@ -71,6 +71,26 @@ test("作る前と公開の前の学びが配線されている", () => {
   assert.match(read("CLAUDE.md"), /別の数え方で確かめてから/, "CLAUDE.md に「数字は別の数え方で確かめる」が無い");
 });
 
+// 進め方: 1週間（v2.9.0）: 切り替え式で、`通常` に戻せることまで見張る。
+test("1週間の進め方が配線され、通常に戻せる", () => {
+  const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
+  const pace = read("docs/pace-one-week.md");
+  for (const id of ["W1", "W2", "W3", "W4", "W5", "W6", "W7"]) {
+    assert.match(pace, new RegExp(`^\\| ${id} \\|`, "m"), `pace-one-week.md に ${id} の行が無い`);
+  }
+  assert.match(pace, /^## 戻し方/m, "pace-one-week.md に「戻し方」が無い");
+  assert.match(pace, /v2\.8\.0/, "pace-one-week.md が戻す先の版（v2.8.0）を名指していない");
+  assert.match(read("docs/sprints/status.md"), /^\| 進め方 \|.*通常/m, "status.md の雛形に「進め方」の行（無ければ通常）が無い");
+  assert.match(read(".claude/commands/plan.md"), /進め方を選ぶ/, "plan.md が進め方を聞いていない");
+  const sprint = read(".claude/commands/sprint.md");
+  assert.match(sprint, /「進め方」を読む/, "sprint.md が進め方を読んでいない");
+  assert.match(sprint, /進め方が `1週間` なら省いて Phase C/, "sprint.md が 1週間 のとき Phase C0 を省いていない");
+  assert.match(read(".claude/agents/planner.md"), /^## 最初の版と翌週以降/m, "planner.md の spec の雛形に「最初の版と翌週以降」が無い");
+  assert.match(read(".claude/agents/evaluator.md"), /W3/, "evaluator.md が時計の固定（W3）を持っていない");
+  assert.match(read(".claude/agents/generator.md"), /W3/, "generator.md が時計の差し替え口（W3）を持っていない");
+  assert.match(read(".claude/commands/harness-init.md"), /pace-one-week\.md/, "harness-init.md が pace-one-week.md を写していない");
+});
+
 test("付録（adapters）がそろい、必ず置く見出しを持つ", () => {
   assert.ok(existsSync(path.join(ROOT, "adapters", "README.md")), "adapters/README.md が無い");
   for (const name of ["web", "expo-react-native", "convex"]) {
@@ -98,6 +118,7 @@ const CORE = [
   "docs/rubric.md",
   "docs/design-tokens.md",
   "docs/product-direction.md",
+  "docs/pace-one-week.md",
   "docs/sprints/status.md",
 ];
 const APP_WORDS = /PawNow|befitting|お題|ペット|グループ/;
