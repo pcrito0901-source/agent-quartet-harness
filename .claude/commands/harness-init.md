@@ -15,6 +15,7 @@ description: ハーネスの動作に必要なファイルをプロジェクト�
 | `docs/rubric.md` | 採点アンカー | ハーネスのテンプレートをコピー |
 | `docs/runbook.md` | 起動方法 | テンプレートを置く（Sprint 1 で Generator が実値を埋める） |
 | `docs/sprints/status.md` | 進捗状態 | テンプレートを置く |
+| `docs/pace-one-week.md` | 進め方: 1週間（日割り ・ W1〜W7 ・ 戻し方） | ハーネスのテンプレートをコピー（進め方を `通常` で使うプロジェクトでも置いてよい。効くのは `status.md` の「進め方」が `1週間` のときだけ） |
 | `docs/design-references/` | 見本と目録（`/design` が作る）・ 方向づけの参考画像 | ハーネスの `docs/design-references/INDEX.md`（目録の雛形）をコピーする |
 | `docs/adapters/` | 使う付録 | 2 で写す（付録が無ければ作らない） |
 

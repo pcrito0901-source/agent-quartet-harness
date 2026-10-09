@@ -40,7 +40,7 @@ Claude Code のサブエージェント4体によるスプリント駆動開発�
 1. ハーネスを入れる（下の「セットアップ」）
 2. `/harness-init` —— 技術の組み合わせを聞かれるので答える。使う付録が `docs/adapters/` に写り、`CLAUDE.md` の「使う付録」に載る。
    入っているスキルだけが、役と場面ごとに配線される
-3. `/plan 作りたいものを1〜4行で` —— `docs/spec.md` の「確認事項」に答えて承認する
+3. `/plan 作りたいものを1〜4行で` —— **進め方（1週間 ／ 通常）を聞かれるので選ぶ**。`docs/spec.md` の「確認事項」に答えて承認する
 4. **画面のあるアプリなら `/design`** —— 全画面の見本（端の状態も含む）が作られるので、見て直してもらい、承認する
 5. ストアに出す・一般に公開するなら `/release-check early`
 6. `/sprint 1` を繰り返す（1回で1フェーズ）
@@ -96,8 +96,12 @@ claude
 Claude Code のセッション内で:
 
 ```
-/plugin marketplace add Shin-sibainu/agent-quartet-harness
+/plugin marketplace add pcrito0901-source/agent-quartet-harness
 ```
+
+> このリポジトリは [Shin-sibainu/agent-quartet-harness](https://github.com/Shin-sibainu/agent-quartet-harness) を元に、
+> 実運用の学び（2.7.0 以降の見本の段 ・ 作る前と公開の前の学び ・ 1週間の進め方など）を足した版です。
+> 元のリポジトリから入れると、これらは入りません。
 
 ```
 /plugin install agent-quartet-harness@agent-quartet
@@ -116,7 +120,7 @@ Claude Code のセッション内で:
 ### 方法B: ファイルをコピーする
 
 ```bash
-git clone https://github.com/Shin-sibainu/agent-quartet-harness.git
+git clone https://github.com/pcrito0901-source/agent-quartet-harness.git
 ```
 
 ```bash
@@ -156,6 +160,31 @@ node --test ".claude/hooks/*.test.mjs"
 Planner が `docs/spec.md` と `docs/sprints/sprint-N/contract.md` を生成します。
 **`spec.md` の「確認事項」節（Planner が推測で埋めた前提）を確認してから次に進んでください。**
 `spec.md` には「画面一覧」（画面ID ・ 役割 ・ 端の状態）も入ります。
+
+### 1.2 進め方を選ぶ（1週間 ／ 通常）
+
+`/plan` のときに聞かれます。**最初の版を1週間で出したいなら「1週間」**を選びます。
+
+| 日 | やること |
+|---|---|
+| 0日目（半日） | 需要を確かめる → `/plan` → 確認事項に答える |
+| 1日目 | `/design` で全画面の見本を承認（**あなたの出番がいちばん多い日**） |
+| 2〜5日目 | 1日2回ずつ、計8回のスプリント。質問は朝と夕にまとめて届きます |
+| 6日目 | 実機の確認 ・ `/release-check` ・ 課金と計測が届くか |
+| 7日目 | 予備日 → 審査に出す |
+
+- 最初の版は**スプリント8回まで**、1回の自動の条件は**10件まで**。入らない機能は翌週に回します
+- 時刻で動きが変わる機能は、最初から**テストの時計を固定**します（いつ走らせても同じ結果）
+- 評価の前のフル回帰は省き、全件は合格の直前の1回だけ（件数を抑えるので20分に収まる見込み）
+- 途中で増えた要望は「最初の版に入れて別の機能を翌週へ出す」か「翌週に回す」かを聞かれます
+- **品質の床は下げません**（縦切り ・ 契約がテストになる ・ 合格の前に全件が緑 ・ 見本の承認はそのまま）
+
+**合わなかったら戻せます。**
+
+1. **そのプロジェクトだけ戻す**: `docs/sprints/status.md` の「進め方」を `通常` に書き換える。次の `/sprint` から元の流れになります
+2. **ハーネスごと戻す**: 1週間の進め方が入る前の版にタグ `v2.8.0` が付いています。その版に戻すか、この版のマージを `git revert` で打ち消します
+
+詳しくは [`docs/pace-one-week.md`](docs/pace-one-week.md)。
 
 ### 1.5 見本を決める（画面のあるアプリ）
 
@@ -314,6 +343,7 @@ your-project/
 │   ├── product-direction.md       # 決定の台帳（V-n ・ 追記のみ）
 │   ├── runbook.md                 # 起動方法（Sprint 1 で Generator が実値を埋める）
 │   ├── release-checklist.md        # 提出・公開の前の確認（早期の穴 ・ 点検 ・ 配布のビルドの決まり ・ 管理画面の分担）
+│   ├── pace-one-week.md           # 進め方: 1週間（日割り ・ W1〜W7 ・ 戻し方）
 │   ├── rubric.md                  # デザイン採点アンカー
 │   ├── design-tokens.css          # トークン正本（既定。形式は付録が決める）
 │   ├── design-tokens.md           # トークン解説
