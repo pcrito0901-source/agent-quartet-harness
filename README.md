@@ -96,8 +96,12 @@ claude
 Claude Code のセッション内で:
 
 ```
-/plugin marketplace add Shin-sibainu/agent-quartet-harness
+/plugin marketplace add pcrito0901-source/agent-quartet-harness
 ```
+
+> このリポジトリは [Shin-sibainu/agent-quartet-harness](https://github.com/Shin-sibainu/agent-quartet-harness) を元に、
+> 実運用の学び（2.7.0 以降の見本の段 ・ 作る前と公開の前の学び ・ 1週間の進め方など）を足した版です。
+> 元のリポジトリから入れると、これらは入りません。
 
 ```
 /plugin install agent-quartet-harness@agent-quartet
@@ -116,7 +120,7 @@ Claude Code のセッション内で:
 ### 方法B: ファイルをコピーする
 
 ```bash
-git clone https://github.com/Shin-sibainu/agent-quartet-harness.git
+git clone https://github.com/pcrito0901-source/agent-quartet-harness.git
 ```
 
 ```bash
