@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.1
+
+**プラグインとして入れると「agents: Invalid input」で失敗していたのを直した。**
+
+- `.claude-plugin/plugin.json` の `agents` を、フォルダ（`"./.claude/agents/"`）から4つのファイルの名簿に替えた。
+  Claude Code 2.1.283 の検査（`claude plugin validate .`）はフォルダの形を受け付けず、`claude plugin install` が止まっていた
+- `wiring.test.mjs` に「plugin.json の agents は4つのファイルの名簿」を足した
+
 ## 2.10.0
 
 **見本の前に見た目の方向を聞き、iOS の半透明（Liquid Glass）の作り方と確かめ方を付録に置いた。**

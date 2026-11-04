@@ -35,6 +35,16 @@ test("plugin.json・marketplace.json・CHANGELOG の版が揃っている", () =
   assert.equal(market.plugins.find((p) => p.name === plugin.name)?.version, latest);
 });
 
+test("plugin.json の agents は4つのファイルの名簿（フォルダの形は install の検査で落ちる）", () => {
+  const plugin = JSON.parse(readFileSync(path.join(ROOT, ".claude-plugin", "plugin.json"), "utf8"));
+  assert.ok(Array.isArray(plugin.agents), "agents がフォルダの字になっている");
+  assert.deepEqual(
+    [...plugin.agents].sort(),
+    AGENTS.map((role) => `./.claude/agents/${role}.md`).sort(),
+  );
+  for (const file of plugin.agents) assert.ok(existsSync(path.join(ROOT, file)), `${file} が無い`);
+});
+
 test("README のファイル構成が載せるコマンドは実在する", () => {
   const content = readFileSync(path.join(ROOT, "README.md"), "utf8");
   const listed = [...content.matchAll(/([a-z-]+)\.md\s+#\s*\//g)].map((m) => m[1]);
